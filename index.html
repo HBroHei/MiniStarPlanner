@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>MP9 Board Space Phraser</title>
+        <script>function getElement(id) {return document.getElementById(id);}</script>
+        <script src="canvasDraw.js"></script>
+
+        <style>
+            canvas{
+                width :100%;
+                height:100%;
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
+            #div_canvas {
+                position: relative;
+                width: 100%;
+                height: 100%;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="div_canvas" style="width: 100%; height: 100%;">
+            <canvas id="mainCanvas" style="z-index: -10; background-color: aqua;"></canvas>
+            <canvas id="2ndCanvas"  style="z-index: -9;"></canvas>
+        </div>
+        
+        <input type="file" id="jFile">
+        <img id="curSpace">
+        <button id="btn_genImg">Generate Image</button>
+        <a download="board.png" id="a_export" style="display: none;"><button id="btn_export">Export to Image</button></a>
+        <!--<div style="display:block">
+            <img src="icons/1.png" id="spimg_1">
+            <img src="icons/2.png" id="spimg_2">
+            <img src="icons/3.png" id="spimg_3">
+            <img src="icons/4.png" id="spimg_4">
+            <img src="icons/5.png" id="spimg_5">
+            <img src="icons/6.png" id="spimg_6">
+            <img src="icons/7.png" id="spimg_7">
+            <img src="icons/8.png" id="spimg_8">
+            <img src="icons/9.png" id="spimg_9">
+            <img src="icons/10.png" id="spimg_10">
+            <img src="icons/11.png" id="spimg_11">
+            <img src="icons/12.png" id="spimg_12">
+            <img src="icons/13.png" id="spimg_13">
+            <img src="icons/14.png" id="spimg_14">
+            <img src="icons/15.png" id="spimg_15">
+            <img src="icons/16.png" id="spimg_16">
+            <img src="icons/17.png" id="spimg_17">
+            <img src="icons/18.png" id="spimg_18">
+            <img src="icons/19.png" id="spimg_19">
+            <img src="icons/20.png" id="spimg_20">
+            <img src="icons/21.png" id="spimg_21">
+            <img src="icons/22.png" id="spimg_22">
+            <img src="icons/23.png" id="spimg_23">
+            <img src="icons/24.png" id="spimg_24">
+            <img src="icons/25.png" id="spimg_25">
+            <img src="icons/26.png" id="spimg_26">
+            <img src="icons/27.png" id="spimg_27">
+            <img src="icons/28.png" id="spimg_28">
+            <img src="icons/29.png" id="spimg_29">
+            <img src="icons/30.png" id="spimg_30">
+            <img src="icons/31.png" id="spimg_31">
+            <img src="icons/32.png" id="spimg_32">
+            <img src="icons/33.png" id="spimg_33">
+            <img src="icons/34.png" id="spimg_34">
+            <img src="icons/35.png" id="spimg_35">
+            <img src="icons/36.png" id="spimg_36">
+            <img src="icons/37.png" id="spimg_37">
+            <img src="icons/38.png" id="spimg_38">
+            <img src="icons/39.png" id="spimg_39">
+            <img src="icons/40.png" id="spimg_40">
+            <img src="icons/41.png" id="spimg_41">
+            <img src="icons/42.png" id="spimg_42">
+            <img src="icons/43.png" id="spimg_43">
+            <img src="icons/44.png" id="spimg_44">
+            <img src="icons/45.png" id="spimg_45">
+            <img src="icons/46.png" id="spimg_46">
+            <img src="icons/47.png" id="spimg_47">
+            <img src="icons/48.png" id="spimg_48">
+            <img src="icons/49.png" id="spimg_49">
+            <img src="icons/50.png" id="spimg_50">
+
+        </div>-->
+    </body>
+    <script src="index.js"></script>
+</html>
