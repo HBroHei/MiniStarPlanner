@@ -1,7 +1,6 @@
 function drawCanvasSpaceIcon(img,x,y,z,sx,sz){
     return new Promise((after) => {
         img.onload = () => {
-            console.log(img)
             canCtx.drawImage(img,x,z,sx,sz);
             after();
         };
@@ -15,7 +14,6 @@ function drawCanvasSpaceIcon(img,x,y,z,sx,sz){
 function drawSecCanvasSpaceIcon(img,x,y,z,sx,sz){
     return new Promise((after) => {
         img.onload = () => {
-            console.log(img)
             getElement("2ndCanvas").getContext("2d").drawImage(img,x,z,sx,sz);
             after();
         };

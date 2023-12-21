@@ -27,10 +27,17 @@
             <canvas id="2ndCanvas"  style="z-index: -9;"></canvas>
         </div>
         
-        <input type="file" id="jFile">
-        <img id="curSpace">
-        <button id="btn_genImg">Generate Image</button>
-        <a download="board.png" id="a_export" style="display: none;"><button id="btn_export">Export to Image</button></a>
+        <div style="position: fixed;">
+            <input type="file" id="jFile">
+            <img id="curSpace">
+            <button id="btn_genImg">Generate Image</button>
+            <a download="board.png" id="a_export" style="display: none;"><button id="btn_export">Export to Image</button></a>
+            <label for="inp_y_filter">Filter Y: </label>
+            <input id="inp_y_filter" type="range" disabled>
+            <label id="lbl_y_filter_val"></label>
+            <button id="btn_rerender" disabled>Re-render</button>
+        </div>
+        
         <!--<div style="display:block">
             <img src="icons/1.png" id="spimg_1">
             <img src="icons/2.png" id="spimg_2">

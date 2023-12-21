@@ -10,6 +10,8 @@ var can2Ctx = getElement("2ndCanvas").getContext("2d");
 var min_x;
 var min_z;
 
+var jsonObj;
+
 var spacesList = {};
 
 var filename = "";
@@ -21,13 +23,13 @@ const lineColors = [
     "Red","Green","Blue"
 ]
 
-async function drawSpace(node){
+async function drawSpace(node, max_render_y){
     let keyList = Object.keys(node);
 
     for(const key of keyList){
         console.log("Loading " + key)
-        if(typeof node[key]=="object"){
-            await drawSpace(node[key]);
+        if(typeof node[key]=="object"){ // If the object is not the space list
+            await drawSpace(node[key],max_render_y);
             console.log("waited");
         }
         else if(key=="__dummy__"){
@@ -53,6 +55,11 @@ async function drawSpace(node){
 
             if(typeof props_space.ms_type!=="undefined"){
                 //console.log(props_space)
+                if(props_space.y>=max_render_y){
+                    console.log("Skipping: " + props_space.y + ">" + max_render_y)
+                    continue;
+                }
+
                 await fetch("./icons/" + props_space.ms_type + ".png").then((r)=>{
                     if(r.status==404){
                         return;
@@ -106,7 +113,7 @@ getElement("jFile").onchange = function(e){
         
     fr.onload = function(){
         //console.log(fr.result)
-        var jsonObj = JSON.parse(fr.result);
+        jsonObj = JSON.parse(fr.result);
 
         //console.log(jsonObj.max_x*1.5 + "-" + jsonObj.min_x*1.5)
 
@@ -123,9 +130,16 @@ getElement("jFile").onchange = function(e){
         min_z = jsonObj.min_z*-1.5;
         /**/
 
+        // Set Y filter max
+        getElement("inp_y_filter").max = jsonObj.max_y+200;
+        getElement("inp_y_filter").min = jsonObj.min_y-200;
+        getElement("inp_y_filter").value = jsonObj.max_y+10;
+        getElement("inp_y_filter").disabled = false;
+        getElement("btn_rerender").disabled = false;
+
         console.log(jsonObj)
 
-        drawSpace(jsonObj)
+        drawSpace(jsonObj,jsonObj.max_y+1000)
         //
 
         //getElement("curSpace").src = "./icons/" + 13 + ".png"
@@ -192,3 +206,13 @@ getElement("2ndCanvas").onclick = evt => {
         }
     }
 }
+
+getElement("btn_rerender").onclick = () => {
+    // Re-render the board
+    canCtx.clearRect(0,0,canCtx.canvas.width,canCtx.canvas.height)
+    can2Ctx.clearRect(0,0,can2Ctx.canvas.width,can2Ctx.canvas.height)
+    console.log(getElement("inp_y_filter").value);
+    drawSpace(jsonObj,getElement("inp_y_filter").value)
+}
+
+getElement("inp_y_filter").onchange = () => getElement("lbl_y_filter_val").textContent = getElement("inp_y_filter").value;
