@@ -1,4 +1,4 @@
-function drawCanvasSpaceIcon(img,x,y,z,sx,sz){
+async function drawCanvasSpaceIcon(img,x,y,z,sx,sz){
     //console.log("Drawing at: " + x + ", " + z)
     return new Promise((after) => {
         img.onload = () => {
@@ -12,7 +12,7 @@ function drawCanvasSpaceIcon(img,x,y,z,sx,sz){
     });
 }
 
-function drawSecCanvasSpaceIcon(img,x,y,z,sx,sz){
+async function drawSecCanvasSpaceIcon(img,x,y,z,sx,sz){
     return new Promise((after) => {
         img.onload = () => {
             getElement("2ndCanvas").getContext("2d").drawImage(img,x,z,sx,sz);

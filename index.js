@@ -68,7 +68,7 @@ async function drawSpace(node, max_render_y,isRecursive){
                     continue;
                 }
 
-                await fetch("./icons/" + props_space.ms_type + ".png").then((r)=>{
+                await fetch("./icons/" + props_space.ms_type + ".png").then(async function(r){
                     if(r.status==404){
                         console.log("Warning: File returned 404, skipping")
                         return;
@@ -77,7 +77,7 @@ async function drawSpace(node, max_render_y,isRecursive){
                     drawSpaceImg.src = "icons/" + props_space.ms_type + ".png"
 
                     // Draw the space on the canvas
-                    drawCanvasSpaceIcon(
+                    await drawCanvasSpaceIcon(
                         drawSpaceImg,
                         ((Number(props_space.x)+min_x)*SPACE_DIST_MOD+50)/size_reduce_mod,
                         Number(props_space.y)/size_reduce_mod,
@@ -97,7 +97,7 @@ async function drawSpace(node, max_render_y,isRecursive){
                     var toBowserSpaceImg = new Image();
                         toBowserSpaceImg.src = "icons/to37.png"
                         // Draw the space on the canvas
-                        drawSecCanvasSpaceIcon(
+                        await drawSecCanvasSpaceIcon(
                             toBowserSpaceImg,
                             (Number(props_space.x)+min_x)*SPACE_DIST_MOD+50,
                             Number(props_space.y),
@@ -189,11 +189,24 @@ document.getElementById("btn_genImg").onclick = function(){
     document.getElementById("a_export").style.display = "inline-block";
 }
 
+function findStart(){
+    for (const [key, props_space] of Object.entries(spacesList)) {
+        //console.log((Number(props_space.x)+min_x)*SPACE_DIST_MOD+50 + " " + (Number(props_space.z)+min_z)*SPACE_DIST_MOD+50)
+        // IF clicked on a space
+        if(props_space.ms_type == "0"){
+            return key;
+        }
+    }
+}
+
 async function showPath(){
     showLoading();
     const spacesNameList = Object.keys(spacesList)
     // Reserved in case needing to define the starting point
-    await drawPath(spacesList[spacesNameList[0]],0);
+    let startSpace = spacesList[findStart()];
+    //let startSpace = spacesList[spacesNameList[0]];
+
+    await drawPath(startSpace,0);
 
     hideLoading();
 }
