@@ -7,6 +7,10 @@
         <script src="canvasDraw.js"></script>
 
         <style>
+            body{
+                margin:0%;
+                padding: 0%;
+            }
             canvas{
                 width :100%;
                 height:100%;
@@ -19,23 +23,82 @@
                 width: 100%;
                 height: 100%;
             }
+
+            #load_filter{
+                margin: auto;
+                text-align: center;
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                background-color: black;
+                opacity: 75%;
+                z-index: 100;
+                align-items: center;
+                color: white;
+
+                display : none;
+            }
+
+            #loading_ico{
+                border: 16px solid lightgray;
+                border-top: 16px solid #6600FF;
+                border-radius: 50%;
+                width: 150px;
+                height: 150px;
+                animation: loading_anim 2s linear infinite;
+
+                margin:auto;
+                left:0;
+                right:0;
+                top:0;
+                bottom:0;
+                position:fixed;
+            }
+
+            @keyframes loading_anim{
+                0% { transform: rotate(0deg);}
+                100% { transform: rotate(360deg);}
+            }
+
+            #div_ms_prop{
+                display: none;
+                position: relative;
+                float: right;
+            }
         </style>
     </head>
     <body>
-        <div id="div_canvas" style="width: 100%; height: 100%;">
-            <canvas id="mainCanvas" style="z-index: -10; background-color: aqua;"></canvas>
+        <div id="load_filter">
+            <div id="loading_ico" style="z-index: 0;"></div>
+            Loading... The browser may lag...
+        </div>
+        
+        <div id="div_canvas" style="width: 100%; height: 100%; display: inline_block;">
+            <canvas id="mainCanvas" style="z-index: -10; background-color: lightgray;"></canvas>
             <canvas id="2ndCanvas"  style="z-index: -9;"></canvas>
         </div>
         
         <div style="position: fixed;">
             <input type="file" id="jFile">
             <img id="curSpace">
-            <button id="btn_genImg">Generate Image</button>
-            <a download="board.png" id="a_export" style="display: none;"><button id="btn_export">Export to Image</button></a>
-            <label for="inp_y_filter">Filter Y: </label>
-            <input id="inp_y_filter" type="range" disabled>
-            <label id="lbl_y_filter_val"></label>
-            <button id="btn_rerender" disabled>Re-render</button>
+            <div id="div_action_btns" style="overflow-x: scroll; display: none;">
+                <button id="btn_genImg">Generate Image</button>
+                <a download="board.png" id="a_export" style="display: none;"><button id="btn_export">Export to Image</button></a>
+                <label for="inp_y_filter">Filter Y: </label>
+                <input id="inp_y_filter" type="range" disabled>
+                <label id="lbl_y_filter_val"></label>
+                <button id="btn_rerender" disabled>Re-render</button>
+                <button onclick="showPath()">Draw Path</button>
+                <input id="inp_canvas_style_size_mod" type="range" step="0.1" max="2" min="0">
+            </div>
+            
+        </div>
+
+        <div id="div_ms_prop">
+            <label for="inp_ms_type">Space Type Number: </label>
+            <input id="inp_ms_type">
+            <br>
+
         </div>
         
         <!--<div style="display:block">

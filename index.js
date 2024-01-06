@@ -15,7 +15,8 @@ var jsonObj;
 var spacesList = {};
 
 var filename = "";
-
+var size_reduce_mod;
+var style_size_mod;
 const SIZE_MOD = 2
 const SPACE_DIST_MOD = 2
 
@@ -23,14 +24,21 @@ const lineColors = [
     "Red","Green","Blue"
 ]
 
-async function drawSpace(node, max_render_y){
+//
+//TODO Make option to scale the map
+//
+
+async function drawSpace(node, max_render_y,isRecursive){
     let keyList = Object.keys(node);
+
+    if(isRecursive)
+        document.getElementById("load_filter").style.display = "block";
 
     for(const key of keyList){
         console.log("Loading " + key)
         if(typeof node[key]=="object"){ // If the object is not the space list
-            await drawSpace(node[key],max_render_y);
-            console.log("waited");
+            await drawSpace(node[key],max_render_y,true);
+            console.log("waited for " + key);
         }
         else if(key=="__dummy__"){
             continue;
@@ -62,22 +70,22 @@ async function drawSpace(node, max_render_y){
 
                 await fetch("./icons/" + props_space.ms_type + ".png").then((r)=>{
                     if(r.status==404){
+                        console.log("Warning: File returned 404, skipping")
                         return;
                     }
                     var drawSpaceImg = new Image();
-                    //console.log(props_space)
-                    //console.log((Number(props_space.x)*1.5+min_x)+" "+(Number(props_space.z)*1.5+min_z))
-
                     drawSpaceImg.src = "icons/" + props_space.ms_type + ".png"
 
                     // Draw the space on the canvas
                     drawCanvasSpaceIcon(
                         drawSpaceImg,
-                        (Number(props_space.x)+min_x)*SPACE_DIST_MOD+50,
-                        Number(props_space.y),
-                        (Number(props_space.z)+min_z)*SPACE_DIST_MOD+50,
+                        ((Number(props_space.x)+min_x)*SPACE_DIST_MOD+50)/size_reduce_mod,
+                        Number(props_space.y)/size_reduce_mod,
+                        ((Number(props_space.z)+min_z)*SPACE_DIST_MOD+50)/size_reduce_mod,
                         50,50
                     )
+
+                    //debugDrawRect((Number(props_space.x)+min_x)*SPACE_DIST_MOD+50,(Number(props_space.z)+min_z)*SPACE_DIST_MOD+50)
 
                     can2Ctx.save();
                 }).catch((err)=>{
@@ -104,6 +112,10 @@ async function drawSpace(node, max_render_y){
             //getElement("curSpace").src = "./icons/" + props_space.ms_type + ".png"
         }
     }
+
+    if(isRecursive)
+        getElement("load_filter").style.display = "none";
+
     document.getElementById("a_export").href = getElement("mainCanvas").toDataURL("image/png").replace("image/png", "image/octet-stream");
 }
 
@@ -112,34 +124,51 @@ getElement("jFile").onchange = function(e){
     var fr = new FileReader();
         
     fr.onload = function(){
-        //console.log(fr.result)
         jsonObj = JSON.parse(fr.result);
 
         //console.log(jsonObj.max_x*1.5 + "-" + jsonObj.min_x*1.5)
 
+        // Initalise this variable in case of oversizing
+        size_reduce_mod = 1;
+
         /**/
-        getElement("mainCanvas").style.width  = (jsonObj.max_x - jsonObj.min_x)*SIZE_MOD + "px";
-        getElement("mainCanvas").style.height = (jsonObj.max_z - jsonObj.min_z)*SIZE_MOD + "px";
-        getElement("2ndCanvas").style.width   = (jsonObj.max_x - jsonObj.min_x)*SIZE_MOD + "px";
-        getElement("2ndCanvas").style.height  = (jsonObj.max_z - jsonObj.min_z)*SIZE_MOD + "px";
-        canCtx.canvas.width   = (jsonObj.max_x - jsonObj.min_x)*SIZE_MOD*SPACE_DIST_MOD+/*Extra Padding*/150;
-        canCtx.canvas.height  = (jsonObj.max_z - jsonObj.min_z)*SIZE_MOD*SPACE_DIST_MOD+/*Extra Padding*/150;
-        can2Ctx.canvas.width  = (jsonObj.max_x - jsonObj.min_x)*SIZE_MOD*SPACE_DIST_MOD+/*Extra Padding*/150;
-        can2Ctx.canvas.height = (jsonObj.max_z - jsonObj.min_z)*SIZE_MOD*SPACE_DIST_MOD+/*Extra Padding*/150;
+        // Set the element size
+        let styleWidth = (jsonObj.max_x - jsonObj.min_x)*SIZE_MOD + "px";
+        let styleHeight = (jsonObj.max_z - jsonObj.min_z)*SIZE_MOD + "px";
+        getElement("mainCanvas").style.width  = styleWidth;
+        getElement("mainCanvas").style.height = styleHeight;
+        getElement("2ndCanvas").style.width   = styleWidth;
+        getElement("2ndCanvas").style.height  = styleHeight;
+
+        // Set the canvas size
+        let canvasWidth = (jsonObj.max_x - jsonObj.min_x)*SIZE_MOD*SPACE_DIST_MOD+/*Extra Padding*/150;
+        let canvasHeight = (jsonObj.max_z - jsonObj.min_z)*SIZE_MOD*SPACE_DIST_MOD+/*Extra Padding*/150;
+        // Check if it exceed the max limit
+        if(canvasHeight>16384 || canvasWidth>16384){
+            size_reduce_mod = Math.max(canvasWidth,canvasHeight)/16384;
+            //console.log(canvasWidth + "/" + size_reduce_mod);
+            canvasWidth /= size_reduce_mod;
+            canvasHeight /= size_reduce_mod;
+        }
+        canCtx.canvas.width   = canvasWidth;
+        canCtx.canvas.height  = canvasHeight;
+        can2Ctx.canvas.width  = canvasWidth;
+        can2Ctx.canvas.height = canvasHeight;
         min_x = jsonObj.min_x*-1.5;
         min_z = jsonObj.min_z*-1.5;
+        console.log(getElement("mainCanvas").style.width + " " + canCtx.canvas.width);
         /**/
 
         // Set Y filter max
-        getElement("inp_y_filter").max = jsonObj.max_y+200;
-        getElement("inp_y_filter").min = jsonObj.min_y-200;
-        getElement("inp_y_filter").value = jsonObj.max_y+10;
+        getElement("inp_y_filter").max =   (jsonObj.max_y+200)/size_reduce_mod;
+        getElement("inp_y_filter").min =   (jsonObj.min_y-200)/size_reduce_mod;
+        getElement("inp_y_filter").value = (jsonObj.max_y+10 )/size_reduce_mod;
         getElement("inp_y_filter").disabled = false;
         getElement("btn_rerender").disabled = false;
 
-        console.log(jsonObj)
+        getElement("div_action_btns").style.display = "inline-block";
 
-        drawSpace(jsonObj,jsonObj.max_y+1000)
+        drawSpace(jsonObj,jsonObj.max_y+1000,false);
         //
 
         //getElement("curSpace").src = "./icons/" + 13 + ".png"
@@ -186,8 +215,8 @@ function showPath(){
 // ON Click event
 getElement("2ndCanvas").onclick = evt => {
     // IDK why it is 1.025 but the pointer will be inaccurate if I dont add it
-    var evtX = (evt.pageX - getElement("2ndCanvas").offsetLeft)*SIZE_MOD*1.025;
-    var evtY = (evt.pageY - getElement("2ndCanvas").offsetTop )*SIZE_MOD*1.025;
+    var evtX = (evt.pageX - getElement("2ndCanvas").offsetLeft)*SIZE_MOD*1.025/size_reduce_mod/style_size_mod;
+    var evtY = (evt.pageY - getElement("2ndCanvas").offsetTop )*SIZE_MOD*1.025/size_reduce_mod/style_size_mod;
     console.log(evtX + " " + evtY)
 
     if(debug)
@@ -197,10 +226,10 @@ getElement("2ndCanvas").onclick = evt => {
         //console.log((Number(props_space.x)+min_x)*SPACE_DIST_MOD+50 + " " + (Number(props_space.z)+min_z)*SPACE_DIST_MOD+50)
         // IF clicked on a space
         if(
-            evtX > (Number(props_space.x)+min_x)*SPACE_DIST_MOD+50 && // Check X Pos
-            evtX < (Number(props_space.x)+min_x)*SPACE_DIST_MOD+50+50 &&
-            evtY > (Number(props_space.z)+min_z)*SPACE_DIST_MOD+50 && // Check Y Pos
-            evtY < (Number(props_space.z)+min_z)*SPACE_DIST_MOD+50+50
+            evtX > ((Number(props_space.x)+min_x)*SPACE_DIST_MOD+50   )/size_reduce_mod && // Check X Pos
+            evtX < ((Number(props_space.x)+min_x)*SPACE_DIST_MOD+50+50)/size_reduce_mod &&
+            evtY > ((Number(props_space.z)+min_z)*SPACE_DIST_MOD+50   )/size_reduce_mod && // Check Y Pos
+            evtY < ((Number(props_space.z)+min_z)*SPACE_DIST_MOD+50+50)/size_reduce_mod
         ){
             console.log(props_space)
         }
@@ -216,3 +245,12 @@ getElement("btn_rerender").onclick = () => {
 }
 
 getElement("inp_y_filter").onchange = () => getElement("lbl_y_filter_val").textContent = getElement("inp_y_filter").value;
+getElement("inp_canvas_style_size_mod").onchange = () => {
+    style_size_mod = getElement("inp_canvas_style_size_mod").value;
+    let styleWidth =  ((jsonObj.max_x - jsonObj.min_x)*SIZE_MOD * getElement("inp_canvas_style_size_mod").value) + "px";
+    let styleHeight = ((jsonObj.max_z - jsonObj.min_z)*SIZE_MOD * getElement("inp_canvas_style_size_mod").value) + "px";
+    getElement("mainCanvas").style.width  = styleWidth;
+    getElement("mainCanvas").style.height = styleHeight;
+    getElement("2ndCanvas").style.width   = styleWidth;
+    getElement("2ndCanvas").style.height  = styleHeight;
+}

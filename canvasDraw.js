@@ -1,4 +1,5 @@
 function drawCanvasSpaceIcon(img,x,y,z,sx,sz){
+    //console.log("Drawing at: " + x + ", " + z)
     return new Promise((after) => {
         img.onload = () => {
             canCtx.drawImage(img,x,z,sx,sz);
@@ -22,4 +23,8 @@ function drawSecCanvasSpaceIcon(img,x,y,z,sx,sz){
             console.error(evt.target)
         };
     });
+}
+
+function debugDrawRect(x,y){
+    getElement("2ndCanvas").getContext("2d").fillRect(x,y,50,50);
 }
