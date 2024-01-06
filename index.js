@@ -31,8 +31,8 @@ const lineColors = [
 async function drawSpace(node, max_render_y,isRecursive){
     let keyList = Object.keys(node);
 
-    if(isRecursive)
-        document.getElementById("load_filter").style.display = "block";
+    if(!isRecursive)
+        showLoading();
 
     for(const key of keyList){
         console.log("Loading " + key)
@@ -113,10 +113,11 @@ async function drawSpace(node, max_render_y,isRecursive){
         }
     }
 
-    if(isRecursive)
-        getElement("load_filter").style.display = "none";
+    if(!isRecursive)
+        hideLoading();
 
     document.getElementById("a_export").href = getElement("mainCanvas").toDataURL("image/png").replace("image/png", "image/octet-stream");
+    style_size_mod = getElement("inp_canvas_style_size_mod").value;
 }
 
 
@@ -188,30 +189,122 @@ document.getElementById("btn_genImg").onclick = function(){
     document.getElementById("a_export").style.display = "inline-block";
 }
 
-function showPath(){
+async function showPath(){
+    showLoading();
+    const spacesNameList = Object.keys(spacesList)
+    // Reserved in case needing to define the starting point
+    await drawPath(spacesList[spacesNameList[0]],0);
+
+    hideLoading();
+}
+
+async function drawPath(curPt,prevCode){
+    let linkedSpaces = curPt.ms_link.split(' ');
+
+    // Iterate over linked space, in case of split path
+    for(let i=0; i<linkedSpaces.length; i++) {
+        let nextPt = spacesList[linkedSpaces[i]];
+        if(nextPt===undefined){
+            console.log("Next space: " + linkedSpaces[i] + "=undefined. Returning")
+            return;
+        }
+        
+        // Draw line between current space and next space
+        can2Ctx.beginPath();
+        can2Ctx.moveTo(
+            ((Number(curPt.x)+min_x)*SPACE_DIST_MOD+50)/size_reduce_mod,
+            ((Number(curPt.z)+min_z)*SPACE_DIST_MOD+50)/size_reduce_mod
+        );
+        can2Ctx.lineTo(
+            ((Number(nextPt.x)+min_x)*SPACE_DIST_MOD+50)/size_reduce_mod,
+            ((Number(nextPt.z)+min_z)*SPACE_DIST_MOD+50)/size_reduce_mod
+        );
+        can2Ctx.lineWidth = 10;
+        //can2Ctx.strokeStyle = lineColors[i%3];
+        can2Ctx.stroke();
+        if(i!=0 && prevCode==0){
+            console.log(prevCode + " >> " + i)
+            prevCode = i;
+        }
+        console.log(linkedSpaces + " " + prevCode)
+        // Recursively continue drawing branch paths from the next point
+        await drawPath(nextPt,prevCode);
+    }
+}
+
+/**
+ * DEPRECATED: only able to draw paths with no split.
+ */
+function showPath_legacy(){
     const spacesNameList = Object.keys(spacesList)
     
     var curPt = spacesList[spacesNameList[0]]
     var i=0;
+    
+    getElement("load_filter").style.display = "block";
     do{
         can2Ctx.beginPath();
-        can2Ctx.moveTo(Number(curPt.x)*1.5+min_x+50,Number(curPt.z)*1.5+min_z+50)
+        can2Ctx.moveTo(
+            ((Number(curPt.x)+min_x)*SPACE_DIST_MOD+50)/size_reduce_mod,
+            ((Number(curPt.z)+min_z)*SPACE_DIST_MOD+50)/size_reduce_mod
+        );
         i++;
         //console.log(Number(curPt.x)*1.5+min_x+50,Number(curPt.z)*1.5+min_z+50)
-        curPt = spacesList[curPt.ms_link]
-        can2Ctx.lineTo(Number(curPt.x)*1.5+min_x+50,Number(curPt.z)*1.5+min_z+50)
+        if(curPt.ms_link.includes(" ")){
+            let splitPathNodes = curPt.ms_link.split(" ");
+            curPt = splitPathNodes[0]; // Temp. fix to view the vanila board path.
+            // Requires code rewrite for real board editing
+            do{
+                can2Ctx.beginPath();
+                can2Ctx.moveTo(
+                    ((Number(curPt.x)+min_x)*SPACE_DIST_MOD+50)/size_reduce_mod,
+                    ((Number(curPt.z)+min_z)*SPACE_DIST_MOD+50)/size_reduce_mod
+                );
+                i++; 
+                curPt = spacesList[curPt.ms_link];
+                can2Ctx.lineTo(
+                    ((Number(curPt.x)+min_x)*SPACE_DIST_MOD+50)/size_reduce_mod,
+                    ((Number(curPt.z)+min_z)*SPACE_DIST_MOD+50)/size_reduce_mod
+                );
+                //console.log(Number(curPt.x)*1.5+min_x+50,Number(curPt.z)*1.5+min_z+50)
+                can2Ctx.lineWidth = 10;
+                //console.log(lineColors[i%3])
+                can2Ctx.strokeStyle = lineColors[i%3];
+                //console.log(can2Ctx.strokeStyle)
+                can2Ctx.stroke();
+                //can2Ctx.closePath();
+                //console.log(curPt.ms_link);
+            }while(curPt.ms_link!=" ")
+        }
+        else{
+            curPt = spacesList[curPt.ms_link];
+        }
+        can2Ctx.lineTo(
+            ((Number(curPt.x)+min_x)*SPACE_DIST_MOD+50)/size_reduce_mod,
+            ((Number(curPt.z)+min_z)*SPACE_DIST_MOD+50)/size_reduce_mod
+        );
         //console.log(Number(curPt.x)*1.5+min_x+50,Number(curPt.z)*1.5+min_z+50)
         can2Ctx.lineWidth = 10;
         //console.log(lineColors[i%3])
-        can2Ctx.strokeStyle = lineColors[i%3]
+        can2Ctx.strokeStyle = lineColors[i%3];
         //console.log(can2Ctx.strokeStyle)
         can2Ctx.stroke();
         //can2Ctx.closePath();
-        console.log(curPt.ms_link)
+        //console.log(curPt.ms_link);
     }while(curPt.ms_link!=" ")
+
+    getElement("load_filter").style.display = "none";
     //can2Ctx.closePath()
 }
 
+function showLoading(){
+    getElement("load_filter").style.display = "block";
+    document.body.style.overflow = "hidden";
+}
+function hideLoading(){
+    getElement("load_filter").style.display = "none";
+    document.body.style.overflow = "auto ";
+}
 // ON Click event
 getElement("2ndCanvas").onclick = evt => {
     // IDK why it is 1.025 but the pointer will be inaccurate if I dont add it
@@ -231,6 +324,7 @@ getElement("2ndCanvas").onclick = evt => {
             evtY > ((Number(props_space.z)+min_z)*SPACE_DIST_MOD+50   )/size_reduce_mod && // Check Y Pos
             evtY < ((Number(props_space.z)+min_z)*SPACE_DIST_MOD+50+50)/size_reduce_mod
         ){
+            console.log(key)
             console.log(props_space)
         }
     }
