@@ -20,6 +20,8 @@ var style_size_mod;
 const SIZE_MOD = 2
 const SPACE_DIST_MOD = 2
 
+var space_size_mod;
+
 const lineColors = [
     "Red","Green","Blue"
 ]
@@ -43,8 +45,8 @@ async function drawSpace(node, max_render_y,isRecursive){
         else if(key=="__dummy__"){
             continue;
         }
-        else if(key.indexOf("max_")!=-1 || key.indexOf("min_")!=-1){
-           
+        else if(key.includes("max_") || key.includes("min_")){
+           // This is the "max_" or "min_" node which stores the values
         }
         else{
             let prop_strs = node[key].split(";");
@@ -57,8 +59,6 @@ async function drawSpace(node, max_render_y,isRecursive){
                 //          Property name           Property value
                 props_space[prop_name_val_arr[0]] = prop_name_val_arr[1];
             }
-            //console.log(props_space)
-
             spacesList[key] = props_space;
 
             if(typeof props_space.ms_type!=="undefined"){
@@ -67,7 +67,7 @@ async function drawSpace(node, max_render_y,isRecursive){
                     console.log("Skipping: " + props_space.y + ">" + max_render_y)
                     continue;
                 }
-
+                
                 await fetch("./icons/" + props_space.ms_type + ".png").then(async function(r){
                     if(r.status==404){
                         console.log("Warning: File returned 404, skipping")
@@ -77,17 +77,19 @@ async function drawSpace(node, max_render_y,isRecursive){
                     drawSpaceImg.src = "icons/" + props_space.ms_type + ".png"
 
                     // Draw the space on the canvas
+                    
                     await drawCanvasSpaceIcon(
                         drawSpaceImg,
                         ((Number(props_space.x)+min_x)*SPACE_DIST_MOD+50)/size_reduce_mod,
                         Number(props_space.y)/size_reduce_mod,
                         ((Number(props_space.z)+min_z)*SPACE_DIST_MOD+50)/size_reduce_mod,
-                        50,50
+                        (50*space_size_mod),(50*space_size_mod)
                     )
+                    
 
                     //debugDrawRect((Number(props_space.x)+min_x)*SPACE_DIST_MOD+50,(Number(props_space.z)+min_z)*SPACE_DIST_MOD+50)
 
-                    can2Ctx.save();
+                    //can2Ctx.save(); // Disabled for performance
                 }).catch((err)=>{
                     console.log(err)
                 })
@@ -102,7 +104,7 @@ async function drawSpace(node, max_render_y,isRecursive){
                             (Number(props_space.x)+min_x)*SPACE_DIST_MOD+50,
                             Number(props_space.y),
                             (Number(props_space.z)+min_z)*SPACE_DIST_MOD+50,
-                            50,50
+                            (50*space_size_mod),(50*space_size_mod)
                         )
                         
                 } 
@@ -113,11 +115,12 @@ async function drawSpace(node, max_render_y,isRecursive){
         }
     }
 
-    if(!isRecursive)
+    if(!isRecursive){
+        style_size_mod = getElement("inp_canvas_style_size_mod").value;
         hideLoading();
+    }
+        
 
-    document.getElementById("a_export").href = getElement("mainCanvas").toDataURL("image/png").replace("image/png", "image/octet-stream");
-    style_size_mod = getElement("inp_canvas_style_size_mod").value;
 }
 
 
@@ -125,12 +128,15 @@ getElement("jFile").onchange = function(e){
     var fr = new FileReader();
         
     fr.onload = function(){
+        canCtx.clearRect(0,0,canCtx.canvas.width,canCtx.canvas.height)
+        can2Ctx.clearRect(0,0,can2Ctx.canvas.width,can2Ctx.canvas.height)
         jsonObj = JSON.parse(fr.result);
 
         //console.log(jsonObj.max_x*1.5 + "-" + jsonObj.min_x*1.5)
 
         // Initalise this variable in case of oversizing
         size_reduce_mod = 1;
+        space_size_mod = 1;
 
         /**/
         // Set the element size
@@ -164,6 +170,7 @@ getElement("jFile").onchange = function(e){
         getElement("inp_y_filter").max =   (jsonObj.max_y+200)/size_reduce_mod;
         getElement("inp_y_filter").min =   (jsonObj.min_y-200)/size_reduce_mod;
         getElement("inp_y_filter").value = (jsonObj.max_y+10 )/size_reduce_mod;
+        getElement("lbl_y_filter_val").textContent = getElement("inp_y_filter").value;
         getElement("inp_y_filter").disabled = false;
         getElement("btn_rerender").disabled = false;
 
@@ -326,16 +333,16 @@ getElement("2ndCanvas").onclick = evt => {
     console.log(evtX + " " + evtY)
 
     if(debug)
-        getElement("2ndCanvas").getContext("2d").fillRect(evtX,evtY,50,50);
+        getElement("2ndCanvas").getContext("2d").fillRect(evtX,evtY,25,25);
 
     for (const [key, props_space] of Object.entries(spacesList)) {
         //console.log((Number(props_space.x)+min_x)*SPACE_DIST_MOD+50 + " " + (Number(props_space.z)+min_z)*SPACE_DIST_MOD+50)
         // IF clicked on a space
         if(
-            evtX > ((Number(props_space.x)+min_x)*SPACE_DIST_MOD+50   )/size_reduce_mod && // Check X Pos
-            evtX < ((Number(props_space.x)+min_x)*SPACE_DIST_MOD+50+50)/size_reduce_mod &&
-            evtY > ((Number(props_space.z)+min_z)*SPACE_DIST_MOD+50   )/size_reduce_mod && // Check Y Pos
-            evtY < ((Number(props_space.z)+min_z)*SPACE_DIST_MOD+50+50)/size_reduce_mod
+            evtX > ((Number(props_space.x)+min_x)*SPACE_DIST_MOD+50                    )/size_reduce_mod && // Check X Pos
+            evtX < ((Number(props_space.x)+min_x)*SPACE_DIST_MOD+50+(50*space_size_mod))/size_reduce_mod &&
+            evtY > ((Number(props_space.z)+min_z)*SPACE_DIST_MOD+50                    )/size_reduce_mod && // Check Y Pos
+            evtY < ((Number(props_space.z)+min_z)*SPACE_DIST_MOD+50+(50*space_size_mod))/size_reduce_mod
         ){
             console.log(key)
             console.log(props_space)
@@ -360,4 +367,7 @@ getElement("inp_canvas_style_size_mod").onchange = () => {
     getElement("mainCanvas").style.height = styleHeight;
     getElement("2ndCanvas").style.width   = styleWidth;
     getElement("2ndCanvas").style.height  = styleHeight;
+}
+getElement("inp_canvas_space_size_mod").onchange = () => {
+    space_size_mod = getElement("inp_canvas_space_size_mod").value;
 }

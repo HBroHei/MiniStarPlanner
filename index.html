@@ -81,7 +81,7 @@
         <div style="position: fixed;">
             <input type="file" id="jFile">
             <img id="curSpace">
-            <div id="div_action_btns" style="overflow-x: scroll; display: none;">
+            <div id="div_action_btns" style="overflow-x: scroll; display: none; opacity: 100%;">
                 <button id="btn_genImg">Generate Image</button>
                 <a download="board.png" id="a_export" style="display: none;"><button id="btn_export">Export to Image</button></a>
                 <label for="inp_y_filter">Filter Y: </label>
@@ -89,7 +89,10 @@
                 <label id="lbl_y_filter_val"></label>
                 <button id="btn_rerender" disabled>Re-render</button>
                 <button onclick="showPath()">Draw Path</button>
-                <input id="inp_canvas_style_size_mod" type="range" step="0.1" max="2" min="0">
+                <label for="inp_canvas_style_size_mod">Map size: </label>
+                <input id="inp_canvas_style_size_mod" type="range" step="0.1" max="2" min="0" value="1">
+                <label for="inp_canvas_space_size_mod">Space size: </label>
+                <input id="inp_canvas_space_size_mod" type="range" step="0.1" max="2" min="0" value="1">
             </div>
             
         </div>
