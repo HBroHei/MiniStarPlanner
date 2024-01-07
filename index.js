@@ -62,9 +62,9 @@ async function drawSpace(node, max_render_y,isRecursive){
             spacesList[key] = props_space;
 
             if(typeof props_space.ms_type!=="undefined"){
-                //console.log(props_space)
-                if(props_space.y>=max_render_y){
-                    console.log("Skipping: " + props_space.y + ">" + max_render_y)
+                //TODO Fix Y sometimes incorrectly skipping
+                if(Number(props_space.y)>=max_render_y){
+                    console.log("Skipping: " + props_space.y + ">" + max_render_y + " = " + (props_space.y>=max_render_y))
                     continue;
                 }
                 
