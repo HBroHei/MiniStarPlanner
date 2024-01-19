@@ -3,15 +3,36 @@
 
     background-color: #f2f2f2;
     color: black;
+    border-color: black;
+    border-radius: 0.75em;
+    border-style: solid;
+    cursor: pointer;
+
+    padding: 0.5em;
+    text-align: center;
 }
 .btn *{
     display: inline-block;
 }
-.btn span{
-    padding: 1em;
-    text-align: center;
-}
+
 
 .btn:hover{
     background-color: lightgray;
+}
+
+
+.section_name_lbl{
+    font-size: larger;
+}
+
+#div_ms_prop{
+    display: none;
+    position: relative;
+    float: right;
+}
+
+#div_mapSizeMod{
+    position: fixed;
+    bottom: 0;
+    right: 0;
 }

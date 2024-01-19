@@ -60,12 +60,6 @@
                 100% { transform: rotate(360deg);}
             }
 
-            #div_ms_prop{
-                display: none;
-                position: relative;
-                float: right;
-            }
-
             #action_div{
                 content: "";
                 clear: both;
@@ -84,30 +78,48 @@
         </div>
         
         <div id="action_div" style="position: fixed; background-color: #00000080; color: white; width: 100%;">
-            <label for="jFile"><a class="btn"><span>Load JSON file</span></a></label>
+            <label for="jFile" class="btn" style="display: inline-block; "><span>Load JSON file</span></label>
             <input type="file" id="jFile" style="display: none;">
-            <img id="curSpace">
+            <label id="lbl_curFile">No file opened</label>
             <div id="div_action_btns" style="overflow-x: auto; display: none; opacity: 100%;">
-                <button id="btn_genImg">Generate Image</button>
-                <a download="board.png" id="a_export" style="display: none;"><button id="btn_export">Export to Image</button></a>
-                <label for="inp_y_filter">Filter Y: </label>
-                <input id="inp_y_filter" type="range" disabled>
-                <label id="lbl_y_filter_val"></label>
-                <button id="btn_rerender" disabled>Re-render</button>
-                <button onclick="showPath()">Draw Path</button>
-                <label for="inp_canvas_style_size_mod">Map size: </label>
-                <input id="inp_canvas_style_size_mod" type="range" step="0.1" max="2" min="0" value="1">
-                <label for="inp_canvas_space_size_mod">Space size: </label>
-                <input id="inp_canvas_space_size_mod" type="range" step="0.1" max="2" min="0" value="1">
+                <div>
+                    <label class="section_name_lbl">Rendering Settings: </label>
+                    <label for="inp_y_filter">Filter Y: </label>
+                    <input id="inp_y_filter" type="number" style="width: 5em;" disabled>
+                    <label id="lbl_y_filter_val" style="display:none;"></label>
+                    <label for="inp_canvas_space_size_mod">Space size: </label>
+                    <input id="inp_canvas_space_size_mod" type="range" step="0.1" max="2" min="0" value="1">
+                    <button id="btn_rerender" class="btn" disabled>Re-render</button>
+                </div>
+                <button id="btn_genImg" class="btn">Generate Image</button>
+                <a download="board.png" id="a_export" style="display: none;" class="btn"><button id="btn_export">Export to Image</button></a>
+                
+                <button class="btn" onclick="showPath()">Draw Path</button>
             </div>
-            
+            <div id="div_ms_prop">
+                <label for="inp_ms_x">X: </label>
+                <input id="inp_ms_x">
+                <label for="inp_ms_y">Y: </label>
+                <input id="inp_ms_y">
+                <label for="inp_ms_z">Z: </label>
+                <input id="inp_ms_z">
+                <br>
+                <label for="inp_ms_type">Space Type Number: </label>
+                <input id="inp_ms_type" style="width: 2em;">
+                <label for="inp_ms_free8">Space "free8" property: </label>
+                <input id="inp_ms_free8">
+                <label for="inp_ms_attr">Space Attribute: </label>
+                <input id="inp_ms_attr" style="width: 2em;">
+                <label for="inp_ms_cam">Space "ms_camera" property: </label>
+                <input id="inp_ms_cam" style="width: 2em;">
+                <label for="inp_ms_link">Next Space: </label>
+                <input id="inp_ms_link">
+            </div>
         </div>
 
-        <div id="div_ms_prop">
-            <label for="inp_ms_type">Space Type Number: </label>
-            <input id="inp_ms_type">
-            <br>
-
+        <div id="div_mapSizeMod">
+            <label for="inp_canvas_style_size_mod">Map size: </label>
+            <input id="inp_canvas_style_size_mod" type="range" step="0.1" max="2" min="0" value="1">
         </div>
         
         <!--<div style="display:block">

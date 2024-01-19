@@ -77,12 +77,12 @@ async function drawSpace(node, max_render_y,isRecursive){
                     drawSpaceImg.src = "icons/" + props_space.ms_type + ".png"
 
                     // Draw the space on the canvas
-                    
+                    const renderCoord = toRenderCoord([props_space.x,props_space.z]);
                     await drawCanvasSpaceIcon(
                         drawSpaceImg,
-                        ((Number(props_space.x)+min_x)*SPACE_DIST_MOD+50)/size_reduce_mod,
+                        renderCoord[0],
                         Number(props_space.y)/size_reduce_mod,
-                        ((Number(props_space.z)+min_z)*SPACE_DIST_MOD+50)/size_reduce_mod,
+                        renderCoord[1],
                         (50*space_size_mod),(50*space_size_mod)
                     )
                     
@@ -99,11 +99,12 @@ async function drawSpace(node, max_render_y,isRecursive){
                     var toBowserSpaceImg = new Image();
                         toBowserSpaceImg.src = "icons/to37.png"
                         // Draw the space on the canvas
+                        const renderCoord = toRenderCoord([props_space.x,props_space.z]);
                         await drawSecCanvasSpaceIcon(
                             toBowserSpaceImg,
-                            (Number(props_space.x)+min_x)*SPACE_DIST_MOD+50,
+                            renderCoord[0],
                             Number(props_space.y),
-                            (Number(props_space.z)+min_z)*SPACE_DIST_MOD+50,
+                            renderCoord[1],
                             (50*space_size_mod),(50*space_size_mod)
                         )
                         
@@ -174,7 +175,7 @@ getElement("jFile").onchange = function(e){
         getElement("inp_y_filter").disabled = false;
         getElement("btn_rerender").disabled = false;
 
-        getElement("div_action_btns").style.display = "inline-block";
+        getElement("div_action_btns").style.display = "inline";
 
         drawSpace(jsonObj,jsonObj.max_y+1000,false);
         //
@@ -185,11 +186,15 @@ getElement("jFile").onchange = function(e){
     fr.readAsText(e.target.files[0]);
     filename = e.target.files[0].name
     document.getElementById("a_export").download = filename + ".png";
+    // Set the file name
+    getElement("lbl_curFile").textContent = "Opened: " + filename;
 }
 
+/*
 getElement("curSpace").onload = function(){
     canCtx.drawImage(getElement("curSpace"),0,0,10,10);
 }
+*/
 
 document.getElementById("btn_genImg").onclick = function(){
     document.getElementById("a_export").href = getElement("mainCanvas").toDataURL("image/png").replace("image/png", "image/octet-stream");
@@ -229,15 +234,17 @@ async function drawPath(curPt,prevCode){
             return;
         }
         
+        let ptRenderCoord = toRenderCoord([curPt.x,curPt.z]);
         // Draw line between current space and next space
         can2Ctx.beginPath();
         can2Ctx.moveTo(
-            ((Number(curPt.x)+min_x)*SPACE_DIST_MOD+50)/size_reduce_mod,
-            ((Number(curPt.z)+min_z)*SPACE_DIST_MOD+50)/size_reduce_mod
+            ptRenderCoord[0],
+            ptRenderCoord[1]
         );
+        ptRenderCoord = toRenderCoord([nextPt.x,nextPt.z])
         can2Ctx.lineTo(
-            ((Number(nextPt.x)+min_x)*SPACE_DIST_MOD+50)/size_reduce_mod,
-            ((Number(nextPt.z)+min_z)*SPACE_DIST_MOD+50)/size_reduce_mod
+            ptRenderCoord[0],
+            ptRenderCoord[1]
         );
         can2Ctx.lineWidth = 10;
         //can2Ctx.strokeStyle = lineColors[i%3];
@@ -328,8 +335,15 @@ function hideLoading(){
 // ON Click event
 getElement("2ndCanvas").onclick = evt => {
     // IDK why it is 1.025 but the pointer will be inaccurate if I dont add it
-    var evtX = (evt.pageX - getElement("2ndCanvas").offsetLeft)*SIZE_MOD*1.025/size_reduce_mod/style_size_mod;
-    var evtY = (evt.pageY - getElement("2ndCanvas").offsetTop )*SIZE_MOD*1.025/size_reduce_mod/style_size_mod;
+    const evtCoord = toRenderCoord_point([evt.clientX, evt.clientY]);
+    /**/
+    var evtX = evtCoord[0]// - getElement("2ndCanvas").offsetLeft;
+    var evtY = evtCoord[1]// - getElement("2ndCanvas").offsetTop ;
+    
+    // 1.025 seems to be a "good enough" value for a fix
+    //var evtX = evt.pageX * SIZE_MOD *1.029 / style_size_mod;
+    //var evtY = evt.pageY * SIZE_MOD *1.029 / style_size_mod;
+    console.log(evt.pageX + " " + evt.pageY)
     console.log(evtX + " " + evtY)
 
     if(debug)
@@ -338,14 +352,34 @@ getElement("2ndCanvas").onclick = evt => {
     for (const [key, props_space] of Object.entries(spacesList)) {
         //console.log((Number(props_space.x)+min_x)*SPACE_DIST_MOD+50 + " " + (Number(props_space.z)+min_z)*SPACE_DIST_MOD+50)
         // IF clicked on a space
+        const renderCoord = toRenderCoord([props_space.x,props_space.z]);
+        const renderCoord_spaceSize = toRenderCoord_spaceLength([props_space.x,props_space.z]);
         if(
-            evtX > ((Number(props_space.x)+min_x)*SPACE_DIST_MOD+50                    )/size_reduce_mod && // Check X Pos
-            evtX < ((Number(props_space.x)+min_x)*SPACE_DIST_MOD+50+(50*space_size_mod))/size_reduce_mod &&
-            evtY > ((Number(props_space.z)+min_z)*SPACE_DIST_MOD+50                    )/size_reduce_mod && // Check Y Pos
-            evtY < ((Number(props_space.z)+min_z)*SPACE_DIST_MOD+50+(50*space_size_mod))/size_reduce_mod
+            evtX > renderCoord[0] && // Check X Pos
+            evtX < renderCoord_spaceSize[0] &&
+            evtY > renderCoord[1] && // Check Y Pos
+            evtY < renderCoord_spaceSize[1]
         ){
-            console.log(key)
-            console.log(props_space)
+            console.log(key);
+            console.log(props_space);
+
+            getElement("div_ms_prop").style.display = "inline-block";
+            getElement("div_action_btns").style.display = "none";
+
+            getElement("inp_ms_x").value = props_space.x;
+            getElement("inp_ms_y").value = props_space.y;
+            getElement("inp_ms_z").value = props_space.z;
+
+            getElement("inp_ms_type").value = props_space.ms_type;
+            getElement("inp_ms_free8").value = props_space.ms_free8;
+            getElement("inp_ms_cam").value = props_space.ms_camera;
+            getElement("inp_ms_attr").value = props_space.ms_attribute;
+            getElement("inp_ms_link").value = props_space.ms_link;
+            break;
+        }
+        else{
+            getElement("div_ms_prop").style.display = "none";
+            getElement("div_action_btns").style.display = "block";
         }
     }
 }
