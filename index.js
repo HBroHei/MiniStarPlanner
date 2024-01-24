@@ -3,6 +3,7 @@ var debug = false;
 
 var canCtx = getElement("mainCanvas").getContext("2d");
 var can2Ctx = getElement("2ndCanvas").getContext("2d");
+var can3Ctx = getElement("3rdCanvas").getContext("2d");
 
 //canCtx.canvas.width = 2500;
 //canCtx.canvas.height = 2500;
@@ -119,6 +120,7 @@ async function drawSpace(node, max_render_y,isRecursive){
     if(!isRecursive){
         style_size_mod = getElement("inp_canvas_style_size_mod").value;
         hideLoading();
+        can2Ctx.save();
     }
         
 
@@ -131,6 +133,7 @@ getElement("jFile").onchange = function(e){
     fr.onload = function(){
         canCtx.clearRect(0,0,canCtx.canvas.width,canCtx.canvas.height)
         can2Ctx.clearRect(0,0,can2Ctx.canvas.width,can2Ctx.canvas.height)
+        can3Ctx.clearRect(0,0,can3Ctx.canvas.width,can3Ctx.canvas.height)
         jsonObj = JSON.parse(fr.result);
 
         //console.log(jsonObj.max_x*1.5 + "-" + jsonObj.min_x*1.5)
@@ -147,6 +150,8 @@ getElement("jFile").onchange = function(e){
         getElement("mainCanvas").style.height = styleHeight;
         getElement("2ndCanvas").style.width   = styleWidth;
         getElement("2ndCanvas").style.height  = styleHeight;
+        getElement("3rdCanvas").style.width   = styleWidth;
+        getElement("3rdCanvas").style.height  = styleHeight;
 
         // Set the canvas size
         let canvasWidth = (jsonObj.max_x - jsonObj.min_x)*SIZE_MOD*SPACE_DIST_MOD+/*Extra Padding*/150;
@@ -162,6 +167,8 @@ getElement("jFile").onchange = function(e){
         canCtx.canvas.height  = canvasHeight;
         can2Ctx.canvas.width  = canvasWidth;
         can2Ctx.canvas.height = canvasHeight;
+        can3Ctx.canvas.width  = canvasWidth;
+        can3Ctx.canvas.height = canvasHeight;
         min_x = jsonObj.min_x*-1.5;
         min_z = jsonObj.min_z*-1.5;
         console.log(getElement("mainCanvas").style.width + " " + canCtx.canvas.width);
@@ -332,8 +339,41 @@ function hideLoading(){
     getElement("load_filter").style.display = "none";
     document.body.style.overflow = "auto ";
 }
+
+// Shows the properties of a space
+function showSpaceProp(key,props_space){
+    console.log(key);
+    console.log(props_space);
+
+    // Gets the coordinate on the display map
+    const renderCoord = toRenderCoord([props_space.x,props_space.z]);
+
+    // Draw rectangle on the selected space
+    can3Ctx.clearRect(0, 0, can3Ctx.canvas.width, can3Ctx.canvas.height);
+
+    can3Ctx.beginPath();
+    can3Ctx.rect(renderCoord[0], renderCoord[1], (50*space_size_mod), (50*space_size_mod));
+    can3Ctx.stroke();
+
+    getElement("div_ms_prop").style.display = "block";
+    getElement("div_action_btns").style.display = "none";
+    getElement("div_files").style.display = "none";
+
+    getElement("inp_ms_x").value = props_space.x;
+    getElement("inp_ms_y").value = props_space.y;
+    getElement("inp_ms_z").value = props_space.z;
+
+    getElement("inp_ms_name").value = key;
+
+    getElement("inp_ms_type").value = props_space.ms_type;
+    getElement("inp_ms_free8").value = props_space.ms_free8;
+    getElement("inp_ms_cam").value = props_space.ms_camera;
+    getElement("inp_ms_attr").value = props_space.ms_attribute;
+    getElement("inp_ms_link").value = props_space.ms_link;
+}
+
 // ON Click event
-getElement("2ndCanvas").onclick = evt => {
+getElement("3rdCanvas").onclick = evt => {
     // IDK why it is 1.025 but the pointer will be inaccurate if I dont add it
     const evtCoord = toRenderCoord_point([evt.clientX, evt.clientY]);
     /**/
@@ -347,7 +387,7 @@ getElement("2ndCanvas").onclick = evt => {
     console.log(evtX + " " + evtY)
 
     if(debug)
-        getElement("2ndCanvas").getContext("2d").fillRect(evtX,evtY,25,25);
+        getElement("3rdCanvas").getContext("2d").fillRect(evtX,evtY,25,25);
 
     for (const [key, props_space] of Object.entries(spacesList)) {
         //console.log((Number(props_space.x)+min_x)*SPACE_DIST_MOD+50 + " " + (Number(props_space.z)+min_z)*SPACE_DIST_MOD+50)
@@ -360,29 +400,20 @@ getElement("2ndCanvas").onclick = evt => {
             evtY > renderCoord[1] && // Check Y Pos
             evtY < renderCoord_spaceSize[1]
         ){
-            console.log(key);
-            console.log(props_space);
-
-            getElement("div_ms_prop").style.display = "inline-block";
-            getElement("div_action_btns").style.display = "none";
-
-            getElement("inp_ms_x").value = props_space.x;
-            getElement("inp_ms_y").value = props_space.y;
-            getElement("inp_ms_z").value = props_space.z;
-
-            getElement("inp_ms_type").value = props_space.ms_type;
-            getElement("inp_ms_free8").value = props_space.ms_free8;
-            getElement("inp_ms_cam").value = props_space.ms_camera;
-            getElement("inp_ms_attr").value = props_space.ms_attribute;
-            getElement("inp_ms_link").value = props_space.ms_link;
+            showSpaceProp(key,props_space);
             break;
         }
         else{
             getElement("div_ms_prop").style.display = "none";
             getElement("div_action_btns").style.display = "block";
+            getElement("div_files").style.display = "block";
+
+            can3Ctx.clearRect(0, 0, can3Ctx.canvas.width, can3Ctx.canvas.height);
         }
     }
 }
+
+getElement("btn_ms_link").onclick = () => showSpaceProp(getElement("inp_ms_link").value,spacesList[getElement("inp_ms_link").value]);
 
 getElement("btn_rerender").onclick = () => {
     // Re-render the board
@@ -401,6 +432,8 @@ getElement("inp_canvas_style_size_mod").onchange = () => {
     getElement("mainCanvas").style.height = styleHeight;
     getElement("2ndCanvas").style.width   = styleWidth;
     getElement("2ndCanvas").style.height  = styleHeight;
+    getElement("3rdCanvas").style.width   = styleWidth;
+    getElement("3rdCanvas").style.height  = styleHeight;
 }
 getElement("inp_canvas_space_size_mod").onchange = () => {
     space_size_mod = getElement("inp_canvas_space_size_mod").value;
