@@ -4,8 +4,11 @@
         <meta charset="utf-8">
         <title>MP9 Board Space Phraser</title>
         <script>function getElement(id) {return document.getElementById(id);}</script>
-        <script src="canvasDraw.js"></script>
+        <script src="./canvasDraw.js"></script>
+        <script src="./dialog.js"></script>
+        <script src="./enter_value.js"></script>
         <link rel="stylesheet" href="./index.css">
+        <link rel="stylesheet" href="./dialog.css">
         <style>
             body{
                 margin:0%;
@@ -61,6 +64,10 @@
             }
 
             #action_div{
+                position: fixed;
+                background-color: #00000080;
+                color: white;
+                width: 100%;
                 content: "";
                 clear: both;
             }
@@ -77,24 +84,23 @@
             <canvas id="2ndCanvas"  style="z-index: -9;"></canvas>
             <canvas id="3rdCanvas"  style="z-index: -8;"></canvas>
         </div>
-        
-        <div id="action_div" style="position: fixed; background-color: #00000080; color: white; width: 100%;">
+        <div id="action_div">
             <div id="div_files">
                 <label for="jFile" class="btn" style="display: inline-block; "><span>Load JSON file</span></label>
                 <input type="file" id="jFile" style="display: none;">
                 <label id="lbl_curFile">No file opened</label>
+                <button id="btn_undo" class="btn disabled" onclick="undo()" disabled>Undo</button>
+                <button id="btn_redo" class="btn disabled" onclick="redo()" disabled>Redo</button>
+                <button id="btn_save" class="btn disabled" onclick="save()" disabled>Save Board (Coming soon)</button>
             </div>
             <div id="div_action_btns" style="overflow-x: auto; display: none; opacity: 100%;">
-                <table>
+                <table class="div_actions">
                     <tr>
-                        <th class="section_name_lbl">Rendering Settings</th>
+                        <th class="section_name_lbl">Map view</th>
                         <td>
-                            <label for="inp_y_filter">Filter Y: </label>
-                            <input id="inp_y_filter" type="number" style="width: 5em;" disabled>
-                            <label id="lbl_y_filter_val" style="display:none;"></label>
-                            <label for="inp_canvas_space_size_mod">Space size: </label>
-                            <input id="inp_canvas_space_size_mod" type="range" step="0.1" max="2" min="0" value="1">
-                            <button id="btn_rerender" class="btn" disabled>Re-render</button>
+                            <button onclick="showDialog('dialog_render')" class="btn">Map render settings</button>
+                            <input id="inp_goto" placeholder="Go to space ID">
+                            <button class="btn" id="btn_goto">Go to Space</button>
                         </td>
                     </tr>
                     <tr>
@@ -108,38 +114,38 @@
                 </table>
             </div>
             <div id="div_ms_prop">
-                <table>
+                <table class="div_actions">
                     <tr>
                         <th class="section_name_lbl">General Information</th>
                         <td>
                             <label for="inp_ms_name">Name: </label>
-                            <input id="inp_ms_name">
-                            <label for="inp_ms_x">X: </label>
-                            <input id="inp_ms_x" style="width: 5em;">
-                            <label for="inp_ms_y">Y: </label>
-                            <input id="inp_ms_y" style="width: 5em;">
-                            <label for="inp_ms_z">Z: </label>
-                            <input id="inp_ms_z" style="width: 5em;">
+                            <input id="inp_ms_name" onkeypress="enterVal(event,this)">
+                            <label for="inp_x">X: </label>
+                            <input id="inp_x" style="width: 5em;" onkeypress="enterVal(event,this)" disabled>
+                            <label for="inp_y">Y: </label>
+                            <input id="inp_y" style="width: 5em;" onkeypress="enterVal(event,this)" disabled>
+                            <label for="inp_z">Z: </label>
+                            <input id="inp_z" style="width: 5em;" onkeypress="enterVal(event,this)" disabled>
                         </td>
                     </tr>
                     <tr>
                         <th class="section_name_lbl">Basic Properties</th>
                         <td>
                             <label for="inp_ms_type">Space Type : </label>
-                            <input id="inp_ms_type" style="width: 2em;">
+                            <input id="inp_ms_type" style="width: 2em;" onkeypress="enterVal(event,this)">
                             <label for="inp_ms_free8">Space "free8" property: </label>
-                            <input id="inp_ms_free8" style="width: 10em;">
+                            <input id="inp_ms_free8" style="width: 10em;" onkeypress="enterVal(event,this)">
                             <label for="inp_ms_attr">Space Attribute: </label>
-                            <input id="inp_ms_attr" style="width: 7em;">
+                            <input id="inp_ms_attr" style="width: 7em;" onkeypress="enterVal(event,this)">
                         </td>
                     </tr>
                     <tr>
                         <th class="section_name_lbl">Advance Properties</th>
                         <td>
-                           <label for="inp_ms_cam">Space "ms_camera" property: </label>
-                            <input id="inp_ms_cam" style="width: 2em;">
+                            <label for="inp_ms_cam">Space "ms_camera" property: </label>
+                            <input id="inp_ms_cam" style="width: 2em;" onkeypress="enterVal(event,this)">
                             <label for="inp_ms_link">Next Space: </label>
-                            <input id="inp_ms_link">
+                            <input id="inp_ms_link" onkeypress="enterVal(event,this)">
                             <button id="btn_ms_link">View</button> 
                         </td>
                         
@@ -152,60 +158,38 @@
             <label for="inp_canvas_style_size_mod">Map size: </label>
             <input id="inp_canvas_style_size_mod" type="range" step="0.1" max="2" min="0" value="1">
         </div>
-        
-        <!--<div style="display:block">
-            <img src="icons/1.png" id="spimg_1">
-            <img src="icons/2.png" id="spimg_2">
-            <img src="icons/3.png" id="spimg_3">
-            <img src="icons/4.png" id="spimg_4">
-            <img src="icons/5.png" id="spimg_5">
-            <img src="icons/6.png" id="spimg_6">
-            <img src="icons/7.png" id="spimg_7">
-            <img src="icons/8.png" id="spimg_8">
-            <img src="icons/9.png" id="spimg_9">
-            <img src="icons/10.png" id="spimg_10">
-            <img src="icons/11.png" id="spimg_11">
-            <img src="icons/12.png" id="spimg_12">
-            <img src="icons/13.png" id="spimg_13">
-            <img src="icons/14.png" id="spimg_14">
-            <img src="icons/15.png" id="spimg_15">
-            <img src="icons/16.png" id="spimg_16">
-            <img src="icons/17.png" id="spimg_17">
-            <img src="icons/18.png" id="spimg_18">
-            <img src="icons/19.png" id="spimg_19">
-            <img src="icons/20.png" id="spimg_20">
-            <img src="icons/21.png" id="spimg_21">
-            <img src="icons/22.png" id="spimg_22">
-            <img src="icons/23.png" id="spimg_23">
-            <img src="icons/24.png" id="spimg_24">
-            <img src="icons/25.png" id="spimg_25">
-            <img src="icons/26.png" id="spimg_26">
-            <img src="icons/27.png" id="spimg_27">
-            <img src="icons/28.png" id="spimg_28">
-            <img src="icons/29.png" id="spimg_29">
-            <img src="icons/30.png" id="spimg_30">
-            <img src="icons/31.png" id="spimg_31">
-            <img src="icons/32.png" id="spimg_32">
-            <img src="icons/33.png" id="spimg_33">
-            <img src="icons/34.png" id="spimg_34">
-            <img src="icons/35.png" id="spimg_35">
-            <img src="icons/36.png" id="spimg_36">
-            <img src="icons/37.png" id="spimg_37">
-            <img src="icons/38.png" id="spimg_38">
-            <img src="icons/39.png" id="spimg_39">
-            <img src="icons/40.png" id="spimg_40">
-            <img src="icons/41.png" id="spimg_41">
-            <img src="icons/42.png" id="spimg_42">
-            <img src="icons/43.png" id="spimg_43">
-            <img src="icons/44.png" id="spimg_44">
-            <img src="icons/45.png" id="spimg_45">
-            <img src="icons/46.png" id="spimg_46">
-            <img src="icons/47.png" id="spimg_47">
-            <img src="icons/48.png" id="spimg_48">
-            <img src="icons/49.png" id="spimg_49">
-            <img src="icons/50.png" id="spimg_50">
 
-        </div>-->
+        <div id="dialog_render" class="dialog">
+
+            <!-- Modal content -->
+            <div class="dialog_content">
+                
+                <h2>Rendering Settings</h2>
+                <label for="inp_y_filter">Filter Y: </label>
+                <input id="inp_y_filter" type="number" style="width: 5em;" disabled>
+                <br>
+                <label for="inp_canvas_space_size_mod">Space size: </label>
+                <input id="inp_canvas_space_size_mod" type="range" step="0.1" max="2" min="0" value="1">
+                <br>
+                <label for="inp_yz_invert">Vertical View (swap Y and Z)</label>
+                <input id="inp_yz_invert" type="checkbox">
+                
+
+                <div class="dialog_bottom">
+                    <button id="btn_rerender" class="btn confirm_btn" disabled>Re-render</button>
+                    <button onclick="hideDialog('dialog_render')" class="btn confirm_btn">Cancel</button>
+                </div>
+                
+            </div>
+          
+          </div>
+        
     </body>
     <script src="index.js"></script>
+    <script src="fileOperation.js"></script>
+    <script>
+        if(window.innerWidth < 600){
+            alert("This application is optimised for desktop views only. Mobile browser may not display the page properly.")
+        }
+    </script>
 </html>

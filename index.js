@@ -23,6 +23,10 @@ const SPACE_DIST_MOD = 2
 
 var space_size_mod;
 
+var yz_invert = false;
+
+var current_space = "";
+
 const lineColors = [
     "Red","Green","Blue"
 ]
@@ -31,7 +35,8 @@ const lineColors = [
 //TODO Make option to scale the map
 //
 
-async function drawSpace(node, max_render_y,isRecursive){
+
+async function drawSpace(node, max_render_y,jsonPath,isRecursive){
     let keyList = Object.keys(node);
 
     if(!isRecursive)
@@ -39,9 +44,9 @@ async function drawSpace(node, max_render_y,isRecursive){
 
     for(const key of keyList){
         console.log("Loading " + key)
-        if(typeof node[key]=="object"){ // If the object is not the space list
-            await drawSpace(node[key],max_render_y,true);
-            console.log("waited for " + key);
+        if(typeof node[key]=="object" && node[key].x===undefined){ // If the object is not the space list
+            await drawSpace(node[key],max_render_y,jsonPath+"/"+key,true);
+            console.log("waited for " + jsonPath);
         }
         else if(key=="__dummy__"){
             continue;
@@ -50,39 +55,57 @@ async function drawSpace(node, max_render_y,isRecursive){
            // This is the "max_" or "min_" node which stores the values
         }
         else{
-            let prop_strs = node[key].split(";");
-            var props_space = [];
-            for(var prop_str of prop_strs){
-                //Parse the UserData
-                let prop_name_val_arr = prop_str.split(":");
-                let prop_name_val_obj = {};
-                // Convert it to JSON and store it in an array
-                //          Property name           Property value
-                props_space[prop_name_val_arr[0]] = prop_name_val_arr[1];
+            // Check if legacy file
+            if(node[key]==="string"){
+                let prop_strs = node[key].split(";");
+                var props_space = [];
+                for(var prop_str of prop_strs){
+                    //Parse the UserData
+                    let prop_name_val_arr = prop_str.split(":");
+                    let prop_name_val_obj = {};
+                    // Convert it to JSON and store it in an array
+                    //          Property name           Property value
+                    props_space[prop_name_val_arr[0]] = prop_name_val_arr[1];
+                }
+                // Save a JSON path for saving purpose
+                props_space["path"] = jsonPath;
+                // Saves the space property alltogether
+                spacesList[key] = props_space;
             }
-            spacesList[key] = props_space;
+            else{ // new format
+                // Shold be able to parse directly
+                //console.log(node[key])
+                node[key]["path"] = jsonPath
+                spacesList[key] = node[key]
+            }
+            const curProcessingSpace = spacesList[key]
 
-            if(typeof props_space.ms_type!=="undefined"){
+            // Draw the space
+            if(typeof curProcessingSpace.ms_type!=="undefined"){
                 //TODO Fix Y sometimes incorrectly skipping
-                if(Number(props_space.y)>=max_render_y){
-                    console.log("Skipping: " + props_space.y + ">" + max_render_y + " = " + (props_space.y>=max_render_y))
+                yz_invert = getElement("inp_yz_invert").checked;
+                const vert_val = yz_invert ? curProcessingSpace.z : curProcessingSpace.y;
+                const hori_val = yz_invert ? curProcessingSpace.y : curProcessingSpace.z;
+
+                if(Number(vert_val)>=max_render_y){
+                    console.log("Skipping: " + vert_val + ">" + max_render_y + " = " + (vert_val>=max_render_y))
                     continue;
                 }
                 
-                await fetch("./icons/" + props_space.ms_type + ".png").then(async function(r){
+                await fetch("./icons/" + curProcessingSpace.ms_type + ".png").then(async function(r){
                     if(r.status==404){
                         console.log("Warning: File returned 404, skipping")
                         return;
                     }
                     var drawSpaceImg = new Image();
-                    drawSpaceImg.src = "icons/" + props_space.ms_type + ".png"
+                    drawSpaceImg.src = "icons/" + curProcessingSpace.ms_type + ".png"
 
                     // Draw the space on the canvas
-                    const renderCoord = toRenderCoord([props_space.x,props_space.z]);
+                    const renderCoord = toRenderCoord([curProcessingSpace.x,hori_val]);
                     await drawCanvasSpaceIcon(
                         drawSpaceImg,
                         renderCoord[0],
-                        Number(props_space.y)/size_reduce_mod,
+                        Number(vert_val)/size_reduce_mod,
                         renderCoord[1],
                         (50*space_size_mod),(50*space_size_mod)
                     )
@@ -96,15 +119,15 @@ async function drawSpace(node, max_render_y,isRecursive){
                 })
                 // Check the space will be converted to a Bowser space
                 // FFFF FFFF 8000 0000 in Hex
-                if(props_space.ms_attribute=="-2147483648"){
+                if(curProcessingSpace.ms_attribute=="-2147483648"){
                     var toBowserSpaceImg = new Image();
                         toBowserSpaceImg.src = "icons/to37.png"
                         // Draw the space on the canvas
-                        const renderCoord = toRenderCoord([props_space.x,props_space.z]);
+                        const renderCoord = toRenderCoord([curProcessingSpace.x,hori_val]);
                         await drawSecCanvasSpaceIcon(
                             toBowserSpaceImg,
                             renderCoord[0],
-                            Number(props_space.y),
+                            Number(vert_val),
                             renderCoord[1],
                             (50*space_size_mod),(50*space_size_mod)
                         )
@@ -112,9 +135,8 @@ async function drawSpace(node, max_render_y,isRecursive){
                 } 
                 
             }
-
-            //getElement("curSpace").src = "./icons/" + props_space.ms_type + ".png"
         }
+        
     }
 
     if(!isRecursive){
@@ -127,75 +149,7 @@ async function drawSpace(node, max_render_y,isRecursive){
 }
 
 
-getElement("jFile").onchange = function(e){
-    var fr = new FileReader();
-        
-    fr.onload = function(){
-        canCtx.clearRect(0,0,canCtx.canvas.width,canCtx.canvas.height)
-        can2Ctx.clearRect(0,0,can2Ctx.canvas.width,can2Ctx.canvas.height)
-        can3Ctx.clearRect(0,0,can3Ctx.canvas.width,can3Ctx.canvas.height)
-        jsonObj = JSON.parse(fr.result);
 
-        //console.log(jsonObj.max_x*1.5 + "-" + jsonObj.min_x*1.5)
-
-        // Initalise this variable in case of oversizing
-        size_reduce_mod = 1;
-        space_size_mod = 1;
-
-        /**/
-        // Set the element size
-        let styleWidth = (jsonObj.max_x - jsonObj.min_x)*SIZE_MOD + "px";
-        let styleHeight = (jsonObj.max_z - jsonObj.min_z)*SIZE_MOD + "px";
-        getElement("mainCanvas").style.width  = styleWidth;
-        getElement("mainCanvas").style.height = styleHeight;
-        getElement("2ndCanvas").style.width   = styleWidth;
-        getElement("2ndCanvas").style.height  = styleHeight;
-        getElement("3rdCanvas").style.width   = styleWidth;
-        getElement("3rdCanvas").style.height  = styleHeight;
-
-        // Set the canvas size
-        let canvasWidth = (jsonObj.max_x - jsonObj.min_x)*SIZE_MOD*SPACE_DIST_MOD+/*Extra Padding*/150;
-        let canvasHeight = (jsonObj.max_z - jsonObj.min_z)*SIZE_MOD*SPACE_DIST_MOD+/*Extra Padding*/150;
-        // Check if it exceed the max limit
-        if(canvasHeight>16384 || canvasWidth>16384){
-            size_reduce_mod = Math.max(canvasWidth,canvasHeight)/16384;
-            //console.log(canvasWidth + "/" + size_reduce_mod);
-            canvasWidth /= size_reduce_mod;
-            canvasHeight /= size_reduce_mod;
-        }
-        canCtx.canvas.width   = canvasWidth;
-        canCtx.canvas.height  = canvasHeight;
-        can2Ctx.canvas.width  = canvasWidth;
-        can2Ctx.canvas.height = canvasHeight;
-        can3Ctx.canvas.width  = canvasWidth;
-        can3Ctx.canvas.height = canvasHeight;
-        min_x = jsonObj.min_x*-1.5;
-        min_z = jsonObj.min_z*-1.5;
-        console.log(getElement("mainCanvas").style.width + " " + canCtx.canvas.width);
-        /**/
-
-        // Set Y filter max
-        getElement("inp_y_filter").max =   (jsonObj.max_y+200)/size_reduce_mod;
-        getElement("inp_y_filter").min =   (jsonObj.min_y-200)/size_reduce_mod;
-        getElement("inp_y_filter").value = (jsonObj.max_y+10 )/size_reduce_mod;
-        getElement("lbl_y_filter_val").textContent = getElement("inp_y_filter").value;
-        getElement("inp_y_filter").disabled = false;
-        getElement("btn_rerender").disabled = false;
-
-        getElement("div_action_btns").style.display = "inline";
-
-        drawSpace(jsonObj,jsonObj.max_y+1000,false);
-        //
-
-        //getElement("curSpace").src = "./icons/" + 13 + ".png"
-        
-    }
-    fr.readAsText(e.target.files[0]);
-    filename = e.target.files[0].name
-    document.getElementById("a_export").download = filename + ".png";
-    // Set the file name
-    getElement("lbl_curFile").textContent = "Opened: " + filename;
-}
 
 /*
 getElement("curSpace").onload = function(){
@@ -230,6 +184,7 @@ async function showPath(){
     hideLoading();
 }
 
+var visitedNode = []
 async function drawPath(curPt,prevCode){
     let linkedSpaces = curPt.ms_link.split(' ');
 
@@ -240,15 +195,19 @@ async function drawPath(curPt,prevCode){
             console.log("Next space: " + linkedSpaces[i] + "=undefined. Returning")
             return;
         }
-        
-        let ptRenderCoord = toRenderCoord([curPt.x,curPt.z]);
+        if(visitedNode.includes(linkedSpaces[i])){
+            console.log("Next space: " + linkedSpaces[i] + " visited. Returning")
+            return;
+        }
+
+        let ptRenderCoord = toRenderCoord([curPt.x,yz_invert ? curPt.y : curPt.z]);
         // Draw line between current space and next space
         can2Ctx.beginPath();
         can2Ctx.moveTo(
             ptRenderCoord[0],
             ptRenderCoord[1]
         );
-        ptRenderCoord = toRenderCoord([nextPt.x,nextPt.z])
+        ptRenderCoord = toRenderCoord([nextPt.x,yz_invert ? nextPt.y : nextPt.z])
         can2Ctx.lineTo(
             ptRenderCoord[0],
             ptRenderCoord[1]
@@ -260,9 +219,17 @@ async function drawPath(curPt,prevCode){
             console.log(prevCode + " >> " + i)
             prevCode = i;
         }
-        console.log(linkedSpaces + " " + prevCode)
+        try{
+            console.log(linkedSpaces + " " + prevCode)
+        }
+        catch(e){
+            alert("Error: Cannot render the full path.");
+            hideLoading();            
+        }
         // Recursively continue drawing branch paths from the next point
         await drawPath(nextPt,prevCode);
+
+        visitedNode.push(linkedSpaces[i])
     }
 }
 
@@ -272,7 +239,8 @@ async function drawPath(curPt,prevCode){
 function showPath_legacy(){
     const spacesNameList = Object.keys(spacesList)
     
-    var curPt = spacesList[spacesNameList[0]]
+    let curPt = spacesList[spacesNameList[0]]
+    curPt.z = yz_invert ? curPt.y : curPt.z;
     var i=0;
     
     getElement("load_filter").style.display = "block";
@@ -345,8 +313,10 @@ function showSpaceProp(key,props_space){
     console.log(key);
     console.log(props_space);
 
+    current_space = key;
+
     // Gets the coordinate on the display map
-    const renderCoord = toRenderCoord([props_space.x,props_space.z]);
+    const renderCoord = toRenderCoord([props_space.x,yz_invert ? props_space.y : props_space.z]);
 
     // Draw rectangle on the selected space
     can3Ctx.clearRect(0, 0, can3Ctx.canvas.width, can3Ctx.canvas.height);
@@ -357,11 +327,11 @@ function showSpaceProp(key,props_space){
 
     getElement("div_ms_prop").style.display = "block";
     getElement("div_action_btns").style.display = "none";
-    getElement("div_files").style.display = "none";
+    //getElement("div_files").style.display = "none";
 
-    getElement("inp_ms_x").value = props_space.x;
-    getElement("inp_ms_y").value = props_space.y;
-    getElement("inp_ms_z").value = props_space.z;
+    getElement("inp_x").value = props_space.x;
+    getElement("inp_y").value = props_space.y;
+    getElement("inp_z").value = props_space.z;
 
     getElement("inp_ms_name").value = key;
 
@@ -370,6 +340,11 @@ function showSpaceProp(key,props_space){
     getElement("inp_ms_cam").value = props_space.ms_camera;
     getElement("inp_ms_attr").value = props_space.ms_attribute;
     getElement("inp_ms_link").value = props_space.ms_link;
+}
+
+function camGoToPos(pos){
+    console.log(pos[0] + " " + pos[1])
+    window.scrollTo(pos[0],pos[1])
 }
 
 // ON Click event
@@ -392,8 +367,9 @@ getElement("3rdCanvas").onclick = evt => {
     for (const [key, props_space] of Object.entries(spacesList)) {
         //console.log((Number(props_space.x)+min_x)*SPACE_DIST_MOD+50 + " " + (Number(props_space.z)+min_z)*SPACE_DIST_MOD+50)
         // IF clicked on a space
-        const renderCoord = toRenderCoord([props_space.x,props_space.z]);
-        const renderCoord_spaceSize = toRenderCoord_spaceLength([props_space.x,props_space.z]);
+        const hori_val = yz_invert ? props_space.y : props_space.z;
+        const renderCoord = toRenderCoord([props_space.x,hori_val]);
+        const renderCoord_spaceSize = toRenderCoord_spaceLength([props_space.x,hori_val]);
         if(
             evtX > renderCoord[0] && // Check X Pos
             evtX < renderCoord_spaceSize[0] &&
@@ -406,7 +382,7 @@ getElement("3rdCanvas").onclick = evt => {
         else{
             getElement("div_ms_prop").style.display = "none";
             getElement("div_action_btns").style.display = "block";
-            getElement("div_files").style.display = "block";
+            //getElement("div_files").style.display = "block";
 
             can3Ctx.clearRect(0, 0, can3Ctx.canvas.width, can3Ctx.canvas.height);
         }
@@ -414,6 +390,12 @@ getElement("3rdCanvas").onclick = evt => {
 }
 
 getElement("btn_ms_link").onclick = () => showSpaceProp(getElement("inp_ms_link").value,spacesList[getElement("inp_ms_link").value]);
+getElement("btn_goto").onclick = () => {
+    const props_space = spacesList[getElement("inp_goto").value]
+    const hori_val = yz_invert ? props_space.y : props_space.z;
+    camGoToPos(toRenderCoord_spaceLength([props_space.x, hori_val]))
+    showSpaceProp(getElement("inp_goto").value,spacesList[getElement("inp_goto").value]);
+}
 
 getElement("btn_rerender").onclick = () => {
     // Re-render the board

@@ -20,9 +20,29 @@
     background-color: lightgray;
 }
 
+.disabled{
+    background-color: #f2f2f200;
+    color: white;
+    border-color: black;
+    cursor:auto;
+}
+
+.disabled:hover{
+    background-color: #f2f2f200;
+}
 
 .section_name_lbl{
     font-size: larger;
+}
+
+.div_actions table tr th td{
+    border-bottom: 0.5em solid white;
+}
+
+#div_files{
+    background-color: #00000080;
+    color: white;
+    width: 100%;
 }
 
 #div_ms_prop{
@@ -30,8 +50,17 @@
     position: relative;
 }
 
+#div_ms_prop tr{
+    border-width: 3px;
+    border-style: solid;
+}
+
 #div_mapSizeMod{
     position: fixed;
     bottom: 0;
     right: 0;
+}
+
+#dialog_render label{
+    font-weight: bold;
 }

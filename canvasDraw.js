@@ -56,6 +56,14 @@ function toRenderCoord_point(coord){
     ]
     */
 }
+
+function fromRenderCoord_point(coord){
+    const canvasRect = getElement("2ndCanvas").getBoundingClientRect();
+    return [
+        (coord[0] / (can2Ctx.canvas.width  / can2Ctx.canvas.clientWidth)) + canvasRect.left,
+        (coord[1] / (can2Ctx.canvas.height / can2Ctx.canvas.clientHeight)) + canvasRect.top
+    ];
+}
 /**
  * Convert a in-game coordinate to the coordinate used in canvas rendering
  * This is used for pointer clicking only. SHOULD NOT be used elsewhere
