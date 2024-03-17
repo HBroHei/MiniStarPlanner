@@ -38,7 +38,7 @@ for(var i=0;i<44;i++){
     spacesImgs.push(new Image());
     spacesImgs[i].src = "/icons/" + i + ".png";
     spacesImgs[i].onload = () => {
-        loadedImgs++;
+        if(spacesImgs.length>43){document.getElementById("jFile").disabled = false}
     }
     spacesImgs[i].onerror = (evt) => {
         console.error("ERROR LOADING " + evt.target.src)
@@ -59,7 +59,7 @@ async function drawSpace(node, max_render_y,jsonPath,isRecursive){
     if(!isRecursive)
         showLoading();
 
-    recursiveStack = keyList
+    //recursiveStack = keyList
     
     for(const key of keyList){
 
@@ -137,15 +137,16 @@ async function drawSpace(node, max_render_y,jsonPath,isRecursive){
                 
             }
         }
-        
+        console.log(keyList.length + " " + keyList.indexOf(key))
     }
 
+    console.log(isRecursive)
     if(!isRecursive){
         style_size_mod = getElement("inp_canvas_style_size_mod").value;
         hideLoading();
         can2Ctx.save();
     }
-        
+    
 
 }
 
