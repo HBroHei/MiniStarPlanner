@@ -39,6 +39,7 @@ for(var i=0;i<44;i++){
     spacesImgs.push(new Image());
     spacesImgs[i].src = "/icons/" + i + ".png";
     spacesImgs[i].onload = () => {
+        console.log("Loaded " + spacesImgs.length + " images")
         if(spacesImgs.length>43){
             document.getElementById("jFile").disabled = false;
             console.log("Loaded");
