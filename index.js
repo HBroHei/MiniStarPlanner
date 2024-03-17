@@ -34,11 +34,16 @@ const lineColors = [
 // Pre-load images
 var loadedImgs = 0
 var spacesImgs = []
+showLoading();
 for(var i=0;i<44;i++){
     spacesImgs.push(new Image());
     spacesImgs[i].src = "/icons/" + i + ".png";
     spacesImgs[i].onload = () => {
-        if(spacesImgs.length>43){document.getElementById("jFile").disabled = false}
+        if(spacesImgs.length>43){
+            document.getElementById("jFile").disabled = false;
+            console.log("Loaded");
+            hideLoading();
+        }
     }
     spacesImgs[i].onerror = (evt) => {
         console.error("ERROR LOADING " + evt.target.src)
