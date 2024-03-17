@@ -34,19 +34,22 @@ const lineColors = [
 // Pre-load images
 var loadedImgs = 0
 var spacesImgs = []
+const canLoadImages = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,34,35,37,38,39,40,41,42,43]
 showLoading();
-for(var i=0;i<44;i++){
-    spacesImgs.push(new Image());
-    spacesImgs[i].src = "/icons/" + i + ".png";
-    spacesImgs[i].onload = () => {
-        console.log("Loaded " + spacesImgs.length + " images")
-        if(spacesImgs.length>43){
+for(const canLoadImg of canLoadImages){
+    spacesImgs[canLoadImg] = new Image();
+    spacesImgs[canLoadImg].src = "/icons/" + canLoadImg + ".png";
+    spacesImgs[canLoadImg].onload = () => {
+        loadedImgs++;
+        console.log("Loaded " + loadedImgs + " images")
+        if(loadedImgs==canLoadImages.length){
             document.getElementById("jFile").disabled = false;
             console.log("Loaded");
             hideLoading();
         }
     }
-    spacesImgs[i].onerror = (evt) => {
+    spacesImgs[canLoadImg].onerror = (evt) => {
+        loadedImgs++;
         console.error("ERROR LOADING " + evt.target.src)
         console.error(evt.target)
     };
