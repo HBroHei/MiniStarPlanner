@@ -1,15 +1,5 @@
-async function drawCanvasSpaceIcon(img,x,y,z,sx,sz){
-    //console.log("Drawing at: " + x + ", " + z)
-    return new Promise((after) => {
-        img.onload = () => {
-            canCtx.drawImage(img,x,z,sx,sz);
-            after();
-        };
-        img.onerror = (evt) => {
-            console.error("ERROR LOADING " + evt.target.src)
-            console.error(evt.target)
-        };
-    });
+function drawCanvasSpaceIcon(imgNo,x,y,z,sx,sz){
+    canCtx.drawImage(spacesImgs[imgNo],x,z,sx,sz);
 }
 
 async function drawSecCanvasSpaceIcon(img,x,y,z,sx,sz){

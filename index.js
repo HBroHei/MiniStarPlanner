@@ -31,6 +31,23 @@ const lineColors = [
     "Red","Green","Blue"
 ]
 
+// Pre-load images
+var loadedImgs = 0
+var spacesImgs = []
+for(var i=0;i<44;i++){
+    spacesImgs.push(new Image());
+    spacesImgs[i].src = "/icons/" + i + ".png";
+    spacesImgs[i].onload = () => {
+        loadedImgs++;
+    }
+    spacesImgs[i].onerror = (evt) => {
+        console.error("ERROR LOADING " + evt.target.src)
+        console.error(evt.target)
+    };
+}
+var toBowserSpaceImg = new Image();
+toBowserSpaceImg.src = "icons/to37.png"
+
 //
 //TODO Make option to scale the map
 //
@@ -42,7 +59,10 @@ async function drawSpace(node, max_render_y,jsonPath,isRecursive){
     if(!isRecursive)
         showLoading();
 
+    recursiveStack = keyList
+    
     for(const key of keyList){
+
         console.log("Loading " + key)
         if(typeof node[key]=="object" && node[key].x===undefined){ // If the object is not the space list
             await drawSpace(node[key],max_render_y,jsonPath+"/"+key,true);
@@ -56,7 +76,7 @@ async function drawSpace(node, max_render_y,jsonPath,isRecursive){
         }
         else{
             // Check if legacy file
-            if(node[key]==="string"){
+            if(typeof node[key]==="string"){
                 let prop_strs = node[key].split(";");
                 var props_space = [];
                 for(var prop_str of prop_strs){
@@ -79,7 +99,6 @@ async function drawSpace(node, max_render_y,jsonPath,isRecursive){
                 spacesList[key] = node[key]
             }
             const curProcessingSpace = spacesList[key]
-
             // Draw the space
             if(typeof curProcessingSpace.ms_type!=="undefined"){
                 //TODO Fix Y sometimes incorrectly skipping
@@ -92,36 +111,18 @@ async function drawSpace(node, max_render_y,jsonPath,isRecursive){
                     continue;
                 }
                 
-                await fetch("./icons/" + curProcessingSpace.ms_type + ".png").then(async function(r){
-                    if(r.status==404){
-                        console.log("Warning: File returned 404, skipping")
-                        return;
-                    }
-                    var drawSpaceImg = new Image();
-                    drawSpaceImg.src = "icons/" + curProcessingSpace.ms_type + ".png"
+                const renderCoord = toRenderCoord([curProcessingSpace.x,hori_val]);
+                drawCanvasSpaceIcon(
+                    curProcessingSpace.ms_type,
+                    renderCoord[0],
+                    Number(vert_val)/size_reduce_mod,
+                    renderCoord[1],
+                    (50*space_size_mod),(50*space_size_mod)
+                );
 
-                    // Draw the space on the canvas
-                    const renderCoord = toRenderCoord([curProcessingSpace.x,hori_val]);
-                    await drawCanvasSpaceIcon(
-                        drawSpaceImg,
-                        renderCoord[0],
-                        Number(vert_val)/size_reduce_mod,
-                        renderCoord[1],
-                        (50*space_size_mod),(50*space_size_mod)
-                    )
-                    
-
-                    //debugDrawRect((Number(props_space.x)+min_x)*SPACE_DIST_MOD+50,(Number(props_space.z)+min_z)*SPACE_DIST_MOD+50)
-
-                    //can2Ctx.save(); // Disabled for performance
-                }).catch((err)=>{
-                    console.log(err)
-                })
                 // Check the space will be converted to a Bowser space
                 // FFFF FFFF 8000 0000 in Hex
                 if(curProcessingSpace.ms_attribute=="-2147483648"){
-                    var toBowserSpaceImg = new Image();
-                        toBowserSpaceImg.src = "icons/to37.png"
                         // Draw the space on the canvas
                         const renderCoord = toRenderCoord([curProcessingSpace.x,hori_val]);
                         await drawSecCanvasSpaceIcon(
