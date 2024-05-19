@@ -44,6 +44,8 @@ getElement("jFile").onchange = function(e){
         can2Ctx.clearRect(0,0,can2Ctx.canvas.width,can2Ctx.canvas.height)
         can3Ctx.clearRect(0,0,can3Ctx.canvas.width,can3Ctx.canvas.height)
         jsonObj = JSON.parse(fr.result);
+        statsInfo = {};
+        spacesList = {};
 
         //console.log(jsonObj.max_x*1.5 + "-" + jsonObj.min_x*1.5)
 

@@ -59,6 +59,12 @@ function toRenderCoord_spaceLength(coord){
     ]
 }
 
+function nodeStarDrag(evt){
+
+}
+function drawMovingIcon(evt){
+
+}
 
 function debugDrawRect(x,y){
     getElement("2ndCanvas").getContext("2d").fillRect(x,y,50,50);

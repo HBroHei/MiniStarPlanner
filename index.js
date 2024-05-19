@@ -1,6 +1,52 @@
 
 var debug = false;
 
+const ID_CONERSION = {
+    0:"Start",
+    1:"Boss Space",
+    3:"Dice Space",
+    4:"Backward Space",
+    5:"Lucky Space",
+    6:"Unlucky Space",
+    7:"\"Almost there\" checkpoint",
+    8:"Spin Space",
+    9:"1 ministar",
+    10:"3 ministars",
+    11:"Battle Space",
+    12:"Mid-Boss Spacee",
+    13:"1v2/3 Space",
+    14:"Green Space?",
+    15:"Bowser Jr Minigame Space",
+    16:"Split path confirmation",
+    17:"Blank Space (Path guiding)",
+    18:"Shuffle Space",
+    19:"Dash Space",
+    20:"4v Minigame Space",
+    21:"Happening Space",
+    22:"Green Space",
+    23:"Magma Space (Magma Mines) (+2/3)",
+    24:"Act like green space, appearance unknown yet",
+    25:"DK Space",
+    26:"Mini star / ztar (s) space (Pipe Bonus area)",
+    27:"Blank Space (No Texture)",
+    28:"Blank Space (No Texture)",
+    29:"Blank Space (No Texture)",
+    30:"Blank Space (No Texture)",
+    31:"Blank Space (No Texture)",
+    32:"Blank Space (No Texture)",
+    33:"Blank Space (No Texture)",
+    34:"Captain Event Space",
+    35:"Jackpot Space (Bowser Space Station)",
+    36:"Blank Space (No Texture)",
+    37:"Bowser Space",
+    38:"Mini Ztar Space (1)",
+    39:"Mini Star Space (1)",
+    40:"Mini Ztar Space (3)",
+    41:"Mini Star Space (3)",
+    42:"Jackpot +5 Space",
+    43:"Jackpot +8 Space"
+}
+
 var canCtx = getElement("mainCanvas").getContext("2d");
 var can2Ctx = getElement("2ndCanvas").getContext("2d");
 var can3Ctx = getElement("3rdCanvas").getContext("2d");
@@ -14,6 +60,7 @@ var min_z;
 var jsonObj;
 
 var spacesList = {};
+var statsInfo = {};
 
 var filename = "";
 var size_reduce_mod;
@@ -128,6 +175,13 @@ async function drawSpace(node, max_render_y,jsonPath,isRecursive){
                     renderCoord[1],
                     (50*space_size_mod),(50*space_size_mod)
                 );
+                // Add to stat counter
+                if(statsInfo[curProcessingSpace.ms_type]===undefined){
+                    statsInfo[curProcessingSpace.ms_type] = 1
+                }
+                else{
+                    statsInfo[curProcessingSpace.ms_type] += 1
+                }
 
                 // Check the space will be converted to a Bowser space
                 // FFFF FFFF 8000 0000 in Hex
@@ -154,19 +208,17 @@ async function drawSpace(node, max_render_y,jsonPath,isRecursive){
         style_size_mod = getElement("inp_canvas_style_size_mod").value;
         hideLoading();
         can2Ctx.save();
+
+        // Show stats
+        document.getElementById("div_stats").textContent = ""
+        for(const stat_key in statsInfo){
+            document.getElementById("div_stats").innerHTML += ID_CONERSION[stat_key] + ": " + statsInfo[stat_key] + "<br>"
+        }
     }
     
 
 }
 
-
-
-
-/*
-getElement("curSpace").onload = function(){
-    canCtx.drawImage(getElement("curSpace"),0,0,10,10);
-}
-*/
 
 document.getElementById("btn_genImg").onclick = function(){
     document.getElementById("a_export").href = getElement("mainCanvas").toDataURL("image/png").replace("image/png", "image/octet-stream");
@@ -398,6 +450,20 @@ getElement("3rdCanvas").onclick = evt => {
             can3Ctx.clearRect(0, 0, can3Ctx.canvas.width, can3Ctx.canvas.height);
         }
     }
+}
+
+// On pressed on object
+getElement("3rdCanvas").ontouchdown = evt => nodeStarDrag(evt)
+getElement("3rdCanvas").onmousedown = evt => nodeStartDrag(evt)
+// On position changed
+getElement("3rdCanvas").ontouchmove = evt => drawMovingIcon(evt)
+getElement("3rdCanvas").onmousemove = evt => drawMovingIcon(evt)
+// On unpress
+getElement("3rdCanvas").ontouchup = evt => {
+    
+}
+getElement("3rdCanvas").onmouseup = evt => {
+    
 }
 
 getElement("btn_ms_link").onclick = () => showSpaceProp(getElement("inp_ms_link").value,spacesList[getElement("inp_ms_link").value]);

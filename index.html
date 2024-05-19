@@ -2,6 +2,7 @@
 <html>
     <head>
         <meta charset="utf-8">
+        <meta name="keywords" content="Planner,Viewer,Mini,Star,Editor,Mario,Party,9,modding,hack,modifier,changer,cheats,codes,Luck,analyse">
         <title>MP9 Board Space Phraser</title>
         <script>function getElement(id) {return document.getElementById(id);}</script>
         <script src="./canvasDraw.js"></script>
@@ -92,6 +93,7 @@
                 <button id="btn_undo" class="btn disabled" onclick="undo()" disabled>Undo</button>
                 <button id="btn_redo" class="btn disabled" onclick="redo()" disabled>Redo</button>
                 <button id="btn_save" class="btn disabled" onclick="save()" disabled>Save Board (Coming soon)</button>
+                <button id="btn_help" class="btn" onclick="showDialog('dialog_help_temp')">Getting Started</button>
             </div>
             <div id="div_action_btns" style="overflow-x: auto; display: none; opacity: 100%;">
                 <table class="div_actions">
@@ -109,6 +111,7 @@
                             <button id="btn_genImg" class="btn">Generate Image</button>
                             <a download="board.png" id="a_export" style="display: none;" class="btn"><button id="btn_export">Export to Image</button></a>
                             <button class="btn" onclick="showPath()">Draw Path</button>
+                            <button class="btn" onclick="showDialog('dialog_stats')">Board stats</button>
                         </td>
                     </tr>
                 </table>
@@ -160,8 +163,6 @@
         </div>
 
         <div id="dialog_render" class="dialog">
-
-            <!-- Modal content -->
             <div class="dialog_content">
                 
                 <h2>Rendering Settings</h2>
@@ -182,7 +183,42 @@
                 
             </div>
           
-          </div>
+        </div>
+
+        <div id="dialog_help_temp" class="dialog">
+            <div class="dialog_content">
+                
+                <h2>How to use</h2>
+                <ol id="div_stats" style="max-height:10em; overflow-y: scroll;">
+                    <li>Download the repository at <a href="https://github.com/HBroHei/MiniStarPlanner">GitHub</a></li>
+                    <li>
+                        Open the board space BRRES file (should be located in common/bd0#, and contains `mass` in its name) with BrawlCrate<br>
+                        (Skip Step 2 and 3 if the plugin is already installed)
+                    </li>
+                    <li>Move the folder `MP9BoardExporter` from the downloaded folder to BrawlCrate's plugin folder (In BrawlCrate > Tools > Open API Folder > Plugins)</li>
+                    <li>Reload BrawlCrate plugins (Tools > Reload Plugins)</li>
+                    <li>Navigate to the mdl0 file in the BRRES file (Located in the 3DModel folder), and highlight (select) it</li>
+                    <li>Export the spaces to a JSON file by going to Plugin > MP9BoardExporter > export_board. Choose the folder that the JSON file will be exported to</li>
+                    <li>Return to here, and choose the exported JSON file.</li>
+                </ol>
+
+                <div class="dialog_bottom">
+                    <button onclick="hideDialog('dialog_help_temp')" class="btn confirm_btn">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="dialog_stats" class="dialog">
+            <div class="dialog_content">
+                
+                <h2>Statistics</h2>
+                <div id="div_stats" style="max-height:10em; overflow-y: scroll;"></div>
+
+                <div class="dialog_bottom">
+                    <button onclick="hideDialog('dialog_stats')" class="btn confirm_btn">Cancel</button>
+                </div>
+            </div>
+        </div>
         
     </body>
     <script src="index.js"></script>
