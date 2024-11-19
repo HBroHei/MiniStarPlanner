@@ -1,9 +1,6 @@
 # MiniStarPlanner
  A Mario Party 9 board space layout viewer \
  Currently still in development, but I figured to release this for other's convenient sake (Although MP9 modding isn't very active)
- 
-## Important note
- BrawlCrate v41 broke UserDataEntries. It only showed some properties of the bone. Please use other versions instead.
 
 ## How to use
  1. Open the board space BRRES file (should be located in common/bd0#, and contains `mass` in its name) with BrawlCrate \
