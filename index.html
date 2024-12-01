@@ -11,6 +11,8 @@
         <link rel="stylesheet" href="./index.css">
         <link rel="stylesheet" href="./dialog.css">
         <style>
+            /* Great, I made it so that this can't be moced to index.css */
+            /* Will figure it later */
             body{
                 margin:0%;
                 padding: 0%;
@@ -92,7 +94,7 @@
                 <label id="lbl_curFile">No file opened</label>
                 <button id="btn_undo" class="btn disabled" onclick="undo()" disabled>Undo</button>
                 <button id="btn_redo" class="btn disabled" onclick="redo()" disabled>Redo</button>
-                <button id="btn_save" class="btn disabled" onclick="save()" disabled>Save Board (Coming soon)</button>
+                <button id="btn_save" class="btn disabled" onclick="save()" disabled>Save Board</button>
                 <button id="btn_help" class="btn" onclick="showDialog('dialog_help_temp')">Getting Started</button>
             </div>
             <div id="div_action_btns" style="overflow-x: auto; display: none; opacity: 100%;">
@@ -119,10 +121,10 @@
             <div id="div_ms_prop">
                 <table class="div_actions">
                     <tr>
-                        <th class="section_name_lbl">General Information</th>
+                        <th class="section_name_lbl"><label for="inp_ms_name">Name: </label>
+                            <input id="inp_ms_name" onkeypress="enterVal(event,this)"></th>
                         <td>
-                            <label for="inp_ms_name">Name: </label>
-                            <input id="inp_ms_name" onkeypress="enterVal(event,this)">
+                            
                             <label for="inp_x">X: </label>
                             <input id="inp_x" style="width: 5em;" onkeypress="enterVal(event,this)" disabled>
                             <label for="inp_y">Y: </label>
@@ -132,10 +134,55 @@
                         </td>
                     </tr>
                     <tr>
-                        <th class="section_name_lbl">Basic Properties</th>
+                        <th class="section_name_lbl" rowspan="2">Properties</th>
                         <td>
-                            <label for="inp_ms_type">Space Type : </label>
-                            <input id="inp_ms_type" style="width: 2em;" onkeypress="enterVal(event,this)">
+                            <label for="sel_ms_type">Space Type : </label>
+                            <!--<input id="inp_ms_type" style="width: 2em;" onkeypress="enterVal(event,this)">-->
+                            <select id="sel_ms_type" onchange="enterVal(event,this)">
+                                <option value="0">0 : Start</option>
+                                <option value="1">1 : Boss Space</option>
+                                <option value="3">3 : Dice Space</option>
+                                <option value="4">4 : Backward Space</option>
+                                <option value="5">5 : Lucky Space</option>
+                                <option value="6">6 : Unlucky Space</option>
+                                <option value="7">7 : "Almost there" checkpoint</option>
+                                <option value="8">8 : Spin Space</option>
+                                <option value="9">9 : Mini Star Spot</option>
+                                <option value="10">10 : Mini Ztar Spot</option>
+                                <option value="11">11 : Battle Space</option>
+                                <option value="12">12 : Mid-Boss Spacee</option>
+                                <option value="13">13 : 1v2/3 Space</option>
+                                <option value="14">14 : Green Space?</option>
+                                <option value="15">15 : Bowser Jr Minigame Space</option>
+                                <option value="16">16 : Split path confirmation</option>
+                                <option value="17">17 : Blank Space (Path guiding)</option>
+                                <option value="18">18 : Shuffle Space</option>
+                                <option value="19">19 : Dash Space</option>
+                                <option value="20">20 : 4v Minigame Space</option>
+                                <option value="21">21 : Happening Space</option>
+                                <option value="22">22 : Green Space</option>
+                                <option value="23">23 : Magma Space (Magma Mines)</option>
+                                <option value="24">24 : INCOMPLETE Jackpot +n Space?</option>
+                                <option value="25">25 : DK Space</option>
+                                <option value="26">26 : Mini Star / Ztar (s) space (Pipe Bonus area)</option>
+                                <option value="27">27 : Blank Space (No Texture)</option>
+                                <option value="28">28 : Blank Space (No Texture)</option>
+                                <option value="29">29 : Blank Space (No Texture)</option>
+                                <option value="30">30 : Blank Space (No Texture)</option>
+                                <option value="31">31 : Blank Space (No Texture)</option>
+                                <option value="32">32 : Blank Space (No Texture)</option>
+                                <option value="33">33 : Blank Space (No Texture)</option>
+                                <option value="34">34 : Captain Event Space</option>
+                                <option value="35">35 : Jackpot Space (Bowser Space Station)</option>
+                                <option value="36">36 : Blank Space (No Texture)</option>
+                                <option value="37">37 : Bowser Space</option>
+                                <option value="38">38 : Mini Ztar Space (1)</option>
+                                <option value="39">39 : Mini Star Space (1)</option>
+                                <option value="40">40 : Mini Ztar Space (3)</option>
+                                <option value="41">41 : Mini Star Space (3)</option>
+                                <option value="42">42 : Jackpot +5 Space</option>
+                                <option value="43">43 : Jackpot +8 Space</option>
+                            </select>
                             <label for="inp_ms_free8">Space "free8" property: </label>
                             <input id="inp_ms_free8" style="width: 10em;" onkeypress="enterVal(event,this)">
                             <label for="inp_ms_attr">Space Attribute: </label>
@@ -143,7 +190,7 @@
                         </td>
                     </tr>
                     <tr>
-                        <th class="section_name_lbl">Advance Properties</th>
+                        
                         <td>
                             <label for="inp_ms_cam">Space "ms_camera" property: </label>
                             <input id="inp_ms_cam" style="width: 2em;" onkeypress="enterVal(event,this)">

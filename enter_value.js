@@ -2,11 +2,10 @@ var spaceList_undoStack = []
 var spaceList_redoStack = []
 
 function enterVal(evt,ele){
-    if(evt.key !== "Enter") // Prevent non-enter key
+    if(evt.key !== "Enter" && ele.nodeName !== "SELECT") // Prevent non-enter key and other unwanted actions
         return;
     evt.preventDefault();
 
-    //TODO Not yet implemented
     var undoAction = {
         "Action" : ele.id.substring(4),
     }
@@ -18,7 +17,7 @@ function enterVal(evt,ele){
     // Set the value by extracting the id of the element for what info should be replaced
     spacesList[current_space][ele.id.substring(4)] = ele.value;
 
-    // Explicit check if the key needs to be ranamed
+    // Explicit check if the key needs to be renamed
     if(ele.id=="inp_ms_name"){
         // Iterate for refactoring ms_link of other spaces
         for (const [key, value] of Object.entries(spacesList)) {
@@ -34,6 +33,9 @@ function enterVal(evt,ele){
         delete spacesList[current_space];
         current_space = ele.value;
     }
+
+    // Re-render the entire map (which may be costy)
+    rerender();
 }
 
 function undo(){

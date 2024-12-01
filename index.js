@@ -108,6 +108,13 @@ toBowserSpaceImg.src = "icons/to37.png"
 //TODO Make option to scale the map
 //
 
+function rerender(){
+    // Re-render the board
+    canCtx.clearRect(0,0,canCtx.canvas.width,canCtx.canvas.height)
+    can2Ctx.clearRect(0,0,can2Ctx.canvas.width,can2Ctx.canvas.height)
+    console.log(getElement("inp_y_filter").value);
+    drawSpace(jsonObj,getElement("inp_y_filter").value)
+}
 
 async function drawSpace(node, max_render_y,jsonPath,isRecursive){
     let keyList = Object.keys(node);
@@ -131,28 +138,31 @@ async function drawSpace(node, max_render_y,jsonPath,isRecursive){
            // This is the "max_" or "min_" node which stores the values
         }
         else{
-            // Check if legacy file
-            if(typeof node[key]==="string"){
-                let prop_strs = node[key].split(";");
-                var props_space = [];
-                for(var prop_str of prop_strs){
-                    //Parse the UserData
-                    let prop_name_val_arr = prop_str.split(":");
-                    let prop_name_val_obj = {};
-                    // Convert it to JSON and store it in an array
-                    //          Property name           Property value
-                    props_space[prop_name_val_arr[0]] = prop_name_val_arr[1];
+            // Check if keys exist - if exists, it is rerendering
+            if(spacesList[key]===undefined){
+                // Check if legacy file
+                if(typeof node[key]==="string"){
+                    let prop_strs = node[key].split(";");
+                    var props_space = [];
+                    for(var prop_str of prop_strs){
+                        //Parse the UserData
+                        let prop_name_val_arr = prop_str.split(":");
+                        let prop_name_val_obj = {};
+                        // Convert it to JSON and store it in an array
+                        //          Property name           Property value
+                        props_space[prop_name_val_arr[0]] = prop_name_val_arr[1];
+                    }
+                    // Save a JSON path for saving purpose
+                    props_space["path"] = jsonPath;
+                    // Saves the space property alltogether
+                    spacesList[key] = props_space;
                 }
-                // Save a JSON path for saving purpose
-                props_space["path"] = jsonPath;
-                // Saves the space property alltogether
-                spacesList[key] = props_space;
-            }
-            else{ // new format
-                // Shold be able to parse directly
-                //console.log(node[key])
-                node[key]["path"] = jsonPath
-                spacesList[key] = node[key]
+                else{ // new format
+                    // Shold be able to parse directly
+                    //console.log(node[key])
+                    node[key]["path"] = jsonPath
+                    spacesList[key] = node[key]
+                }
             }
             const curProcessingSpace = spacesList[key]
             // Draw the space
@@ -208,6 +218,8 @@ async function drawSpace(node, max_render_y,jsonPath,isRecursive){
         style_size_mod = getElement("inp_canvas_style_size_mod").value;
         hideLoading();
         can2Ctx.save();
+
+        getElement("btn_save").classList.remove("disabled");
 
         // Show stats
         document.getElementById("div_stats").textContent = ""
@@ -398,7 +410,7 @@ function showSpaceProp(key,props_space){
 
     getElement("inp_ms_name").value = key;
 
-    getElement("inp_ms_type").value = props_space.ms_type;
+    getElement("sel_ms_type").value = props_space.ms_type;
     getElement("inp_ms_free8").value = props_space.ms_free8;
     getElement("inp_ms_cam").value = props_space.ms_camera;
     getElement("inp_ms_attr").value = props_space.ms_attribute;
@@ -475,11 +487,7 @@ getElement("btn_goto").onclick = () => {
 }
 
 getElement("btn_rerender").onclick = () => {
-    // Re-render the board
-    canCtx.clearRect(0,0,canCtx.canvas.width,canCtx.canvas.height)
-    can2Ctx.clearRect(0,0,can2Ctx.canvas.width,can2Ctx.canvas.height)
-    console.log(getElement("inp_y_filter").value);
-    drawSpace(jsonObj,getElement("inp_y_filter").value)
+    rerender();
 }
 
 getElement("inp_y_filter").onchange = () => getElement("lbl_y_filter_val").textContent = getElement("inp_y_filter").value;

@@ -1,0 +1,8 @@
+{
+    "editor.fontLigatures": false,
+    "workbench.colorCustomizations": {
+        "editor.background":"#000000",
+        "sideBar.background":"#000000",
+        "editor.lineHighlightBackground":"#00142d"
+    }
+}

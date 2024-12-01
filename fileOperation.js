@@ -1,9 +1,22 @@
-function save(){
+var openedFileName = ""
+
+function save_(){
     alert("This functionality will be available soon!")
 }
 
-function save_() {
-    for(const [space,spaceName] in spacesList){
+function save() {
+    let jsonObj = {
+        "Nodes":{},
+        "min_x":0,
+        "max_x":0,
+        "min_y":0,
+        "max_y":0,
+        "min_z":0,
+        "max_z":0,
+    }
+    let newObj = {};
+    for(const [spaceName,space] of Object.entries(spacesList)){
+        console.log("Converting " + spaceName)
         // Update max / min value
         jsonObj.min_x = Math.min(space.x, jsonObj.min_x);
         jsonObj.max_x = Math.max(space.x, jsonObj.max_x);
@@ -12,15 +25,35 @@ function save_() {
         jsonObj.min_z = Math.min(space.z, jsonObj.min_z);
         jsonObj.max_z = Math.max(space.z, jsonObj.max_z);
 
-        var pathArray = space.path.split("/");
-        var newObj = {};
+        const pathArray = space.path.split("/").slice(1);
 
         // Reconstruct the json obj path
         // TODO Unfinished: put newObj into the main jsonObj
-        pathArray.reduce(function(node, path) {
-            return node[path] = {}
-        }, newObj)
+        // pathArray.reduce(function(node, path) {
+        //     return node[path] = {}
+        // }, newObj)
 
+        //console.log(pathArray)
+        let curNode = jsonObj//["Nodes"]
+        for(let pathName of pathArray){
+            if(curNode[pathName]===undefined){
+                curNode[pathName] = {}
+            }
+            curNode = curNode[pathName]
+        }
+
+        console.log(jsonObj)
+        curNode[spaceName] = {
+            ms_type: space.ms_type,
+            ms_attribute: space.ms_attribute,
+            ms_link: space.ms_link,
+            ms_camera: space.ms_camera,
+            ms_free8: space.ms_free8,
+            x: space.x,
+            y: space.y,
+            z: space.z,
+        };
+        /*
         jsonObj.Nodes[spaceName] = {
             ms_type: space.ms_type,
             ms_attribute: space.ms_attribute,
@@ -31,7 +64,19 @@ function save_() {
             y: space.y,
             z: space.z,
         };
+        */
     }
+
+    // const outJSonText = document.getElementById("gen_beauty").checked ? [JSON.stringify(toJson(),null,4)] : [JSON.stringify(toJson())]
+    const outJSonText = [JSON.stringify(jsonObj,null,4)];
+    var downBlob = new Blob(outJSonText);
+    //document.getElementById("fileGen").innerHTML = '<button>Generate</button>'
+    //document.getElementById("downFrame").src = window.URL.createObjectURL(downBlob)
+
+    let _a = document.createElement('a');
+    _a.download = openedFileName + ".json";
+    _a.href = window.URL.createObjectURL(downBlob);
+    _a.click();
 
     return jsonObj;
 }
@@ -107,4 +152,5 @@ getElement("jFile").onchange = function(e){
     document.getElementById("a_export").download = filename + ".png";
     // Set the file name
     getElement("lbl_curFile").textContent = "Opened: " + filename;
+    openedFileName = filename
 }
