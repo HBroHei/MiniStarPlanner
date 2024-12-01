@@ -4,9 +4,11 @@ __version__ = "1.0.0"
 # Ref / docs: soopercool101.github.io/BrawlCrate
 
 from BrawlCrate.API import *
+from BrawlLib.Internal import Vector3
 from BrawlLib.SSBB.ResourceNodes import *
 from BrawlLib.SSBB import UserDataClass
 from BrawlLib.SSBB.Types import *
+from BrawlLib.SSBB import UserValueType
 from System.IO import *
 from System.Collections.Generic import List
 
@@ -19,6 +21,13 @@ range_y = [0,0]
 range_z = [0,0]
 
 SAMPLE_NODE = None
+TYPE_LOOKUP = {
+    "ms_type" : "int",
+    "ms_attribute" : "int",
+    "ms_link" : "str",
+    "ms_camera" : "int",
+    "ms_free8" : "int[]"
+}
 
 def printDebug(msg):
     BrawlAPI.ShowMessage(str(msg),"DEBUG")
@@ -33,34 +42,38 @@ def toKeyVal(kv_pair):
     return kv_pair.Key, kv_pair.Value
 
 def add_node(name,data,parent):
+    # TODO Also need to delete and create verticies
     new_bone_node = SAMPLE_NODE.Clone()
     new_bone_node.Name = name
     # Check if it is actually a node
     if "ms_type" in data:
-        new_bone_node.Translation._x = float(data["x"])
-        new_bone_node.Translation._y = float(data["y"])
-        new_bone_node.Translation._z = float(data["z"])
+        new_bone_node.Translation = Vector3(float(data["x"]),float(data["y"]),float(data["z"]),)
+        
+        # printDebug(str(new_bone_node) + ": " + str(new_bone_node.Translation) + " | " + str(data["x"]) + " " + str(data["y"]))
 
         for kv_pair in data:
             k_name, dat = toKeyVal(kv_pair)
             # Check if it has been added
             if k_name not in ["x","y","z"]:
                 i_dat = dat
-                if type(dat)==str:
+                #printDebug(k_name + ": " + str(type(dat)))
+                # Check data type
+                cur_type = TYPE_LOOKUP[k_name]
+                if cur_type=="str":
                     i_dat = tuple([dat])
-                else:
-                    i_dat = tuple(dat)
-                # if type(dat)==str:
-                #     i_dat = int(dat)
-                # else:
-                #     i_dat = dat
+                    user_data_type = UserValueType.String
+                elif cur_type=="int":
+                    i_dat = tuple([dat])
+                    user_data_type = UserValueType.Int
+                elif cur_type=="int[]":
+                    i_dat = tuple(dat.split(","))
+                    user_data_type = UserValueType.Int
                 # Add new User Data
                 user_data = UserDataClass()
                 user_data.Name = k_name
-                user_data.DataType = 0
+                user_data.DataType =  user_data_type
                 user_data.Entries = i_dat
                 new_bone_node.UserEntries.Add(user_data)
-
     else:
         # Add children to the node
         for kv_pair in data:
@@ -81,9 +94,9 @@ def process_node(node_dict, base_node):
         base_node.Children.Clear()
         #printDebug("Process: " + base_node.Name)
         # Add back the edited nodes
-        for kv_pair in node_dict[base_node.Name]:
+        for kv_pair in node_dict[base_node.Name]: # For every node
             key, dat = toKeyVal(kv_pair)
-            add_node(key, dat, base_node)
+            add_node(key, dat, base_node) # Add node
         pass
     elif base_node.HasChildren:
         #printDebug(base_node.Name)
