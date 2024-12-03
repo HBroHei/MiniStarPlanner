@@ -129,6 +129,7 @@ def import_node(json_file):
 
     pass
 
+printMsg("CURRENTLY BUGGED: Please manually relink all polygons for each nodes")
 import_loc = BrawlAPI.OpenFileDialog("Select JSON file location","JSON files (*.json)|*.json|All files (*.*)|*.*")
 if import_loc=="":
     pass

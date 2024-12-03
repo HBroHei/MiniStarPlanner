@@ -48,7 +48,7 @@ function save() {
             ms_attribute: space.ms_attribute,
             ms_link: space.ms_link,
             ms_camera: space.ms_camera,
-            ms_free8: space.ms_free8,
+            ms_free8: space.split(","),
             x: space.x,
             y: space.y,
             z: space.z,
